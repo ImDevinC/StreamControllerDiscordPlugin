@@ -7,12 +7,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 
-class SampleAction(ActionBase):
-    ACTION_NAME = "Sample Action"
-    CONTROLS_KEY_IMAGE = False
-    def __init__(self, deck_controller, page, coords):
-        super().__init__(deck_controller=deck_controller, page=page, coords=coords)
-
+# Import actions
+from .actions.Backend.BackendAction import BackendAction
 
 class PluginTemplate(PluginBase):
     def __init__(self):
@@ -20,4 +16,4 @@ class PluginTemplate(PluginBase):
         self.GITHUB_REPO = "https://github.com/Core447/PluginTemplate"
         super().__init__()
 
-        self.add_action(SampleAction)
+        self.add_action(BackendAction)
