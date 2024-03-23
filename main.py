@@ -1,19 +1,28 @@
-from src.backend.PluginManager.ActionBase import ActionBase
+# Import StreamController modules
 from src.backend.PluginManager.PluginBase import PluginBase
-
-# Import gtk modules
-import gi
-gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
+from src.backend.PluginManager.ActionHolder import ActionHolder
 
 # Import actions
 from .actions.Backend.BackendAction import BackendAction
+from .actions.SimpleAction.SimpleAction import SimpleAction
 
 class PluginTemplate(PluginBase):
     def __init__(self):
-        self.PLUGIN_NAME = "PluginTemplate"
-        self.GITHUB_REPO = "https://github.com/Core447/PluginTemplate"
         super().__init__()
 
-        self.add_action(BackendAction)
+        ## Register actions
+        self.simple_action_holder = ActionHolder(
+            plugin_base = self,
+            action_base = SimpleAction,
+            action_id = "dev_core447_Template::SimpleAction", # Change this to your own plugin id
+            action_name = "Simple Action",
+        )
+        self.add_action_holder(self.simple_action_holder)
+
+        # Register plugin
+        self.register(
+            plugin_name = "Template",
+            github_repo = "https://github.com/StreamController/PluginTemplate",
+            plugin_version = "1.0.0",
+            app_version = "1.1.1-alpha"
+        )

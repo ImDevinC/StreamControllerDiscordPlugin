@@ -1,2 +1,0 @@
-Pyro5>=5.15
-streamcontroller-plugin-tools>=0.0.4
