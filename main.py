@@ -3,7 +3,6 @@ from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
 
 # Import actions
-from .actions.Backend.BackendAction import BackendAction
 from .actions.SimpleAction.SimpleAction import SimpleAction
 
 class PluginTemplate(PluginBase):
