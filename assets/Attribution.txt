@@ -1,0 +1,2 @@
+All images in this folder (and subfolders) are from fonts.google.com and licensed under the Apache License, Version 2.0.
+You can retrieve a copy of the license at https://www.apache.org/licenses/LICENSE-2.0.
