@@ -14,10 +14,8 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 
 class SimpleAction(ActionBase):
-    def __init__(self, action_id: str, action_name: str,
-                 deck_controller: DeckController, page: Page, coords: str, plugin_base: PluginBase):
-        super().__init__(action_id=action_id, action_name=action_name,
-            deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
+    def __init__(*args, **kwargs):
+        super().__init__(*args, **kwargs)
         
     def on_ready(self) -> None:
         icon_path = os.path.join(self.plugin_base.PATH, "assets", "info.png")
