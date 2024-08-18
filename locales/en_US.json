@@ -1,0 +1,11 @@
+{
+  "plugin.name": "Discord",
+  "actions.base.no-credentials": "Missing Credentials",
+  "actions.base.client_id": "Client ID",
+  "actions.base.client_secret": "Client Secret",
+  "actions.base.validate": "Validate",
+  "actions.base.credentials.title": "Discord Credentials",
+  "actions.info.link.label": "Checkout how to configure this plugin on",
+  "actions.info.link.text": "GitHub",
+  "actions.mute.choice.title": "Button Press Action"
+}

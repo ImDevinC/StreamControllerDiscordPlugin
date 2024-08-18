@@ -1,27 +1,50 @@
+import os
+
 # Import StreamController modules
 from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
 
 # Import actions
-from .actions.SimpleAction.SimpleAction import SimpleAction
+from .actions.MuteAction import MuteAction
+
 
 class PluginTemplate(PluginBase):
     def __init__(self):
         super().__init__()
 
-        ## Register actions
-        self.simple_action_holder = ActionHolder(
-            plugin_base = self,
-            action_base = SimpleAction,
-            action_id = "dev_core447_Template::SimpleAction", # Change this to your own plugin id
-            action_name = "Simple Action",
-        )
-        self.add_action_holder(self.simple_action_holder)
+        self.lm = self.locale_manager
+        self.lm.set_to_os_default()
 
-        # Register plugin
-        self.register(
-            plugin_name = "Template",
-            github_repo = "https://github.com/StreamController/PluginTemplate",
-            plugin_version = "1.0.0",
-            app_version = "1.1.1-alpha"
+        settings = self.get_settings()
+        client_id = settings.get('client_id', '')
+        client_secret = settings.get('client_secret', '')
+        access_token = settings.get('access_token', '')
+
+        backend_path = os.path.join(self.PATH, 'backend.py')
+        self.launch_backend(backend_path=backend_path,
+                            open_in_terminal=True, venv_path=os.path.join(self.PATH, '.venv'))
+        self.wait_for_backend(10)
+        self.backend.update_client_credentials(
+            client_id, client_secret, access_token)
+
+        self.message_mute_action_holder = ActionHolder(
+            plugin_base=self,
+            action_base=MuteAction,
+            action_id="com_imdevinc_StreamControllerDiscordPlugin::Mute",
+            action_name="Mute Microphone"
         )
+        self.add_action_holder(self.message_mute_action_holder)
+
+        self.register(
+            plugin_name="Discord Integration",
+            github_repo="https://github.com/imdevinc/StreamControllerDiscordPlugin",
+            plugin_version="1.0.0",
+            app_version="1.5.0"
+        )
+
+        self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
+
+    def save_access_token(self, access_token: str):
+        settings = self.get_settings()
+        settings['access_token'] = access_token
+        self.set_settings(settings)
