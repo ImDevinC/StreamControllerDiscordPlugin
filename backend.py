@@ -6,7 +6,7 @@ from streamcontroller_plugin_tools import BackendBase
 
 from loguru import logger as log
 
-from rpc import RPC
+from discordrpc import AsyncDiscord, commands
 
 
 class Backend(BackendBase):
@@ -15,32 +15,40 @@ class Backend(BackendBase):
         self.client_id: str = None
         self.client_secret: str = None
         self.access_token: str = None
-        self.rpc: RPC = None
+        self.discord_client: AsyncDiscord = None
+        self.callbacks: dict = {}
 
-    def send_rpc_command(self, command, msg=None):
-        if self.rpc is None:
-            self.rpc = RPC(self.client_id, self.client_secret)
+    def discord_callback(self, code, event):
+        log.debug("code {0}", code)
+        log.debug("event {0}", event)
+        if code == 0:
+            return
+        event = json.loads(event)
+        match event.get('cmd'):
+            case commands.AUTHORIZE:
+                auth_code = event.get('data').get('code')
+                self.access_token = self.discord_client.get_access_token(
+                    auth_code)
+                self.discord_client.authenticate(self.access_token)
+                self.frontend.save_access_token(self.access_token)
+            case commands.AUTHENTICATE:
+                print("what")
+                for k in self.callbacks:
+                    print(f"sub to {k}")
+                    self.discord_client.subscribe(k)
+            case commands.DISPATCH:
+                pass
 
-        if self.rpc is None:
-            raise Exception("not started")
-
-        payload = {
-            'cmd': command,
-            'nonce': str(uuid.uuid4()),
-        }
-        if msg:
-            payload['args'] = msg
-        return self.rpc.send(payload)
+    def setup_client(self):
+        self.discord_client = AsyncDiscord(self.client_id, self.client_secret)
+        self.discord_client.connect(self.discord_callback)
+        if not self.access_token:
+            self.discord_client.authorize()
+        else:
+            self.discord_client.authenticate(self.access_token)
 
     def set_mute(self, muted: bool):
-        payload = {
-            'mute': muted
-        }
-        self.send_rpc_command('SET_VOICE_SETTINGS', payload)
-
-    def get_voice_settings(self):
-        resp = self.send_rpc_command('GET_VOICE_SETTINGS')
-        print(resp)
+        self.discord_client.set_voice_settings({'mute': muted})
 
     def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = ""):
         if None in (client_id, client_secret) or "" in (client_id, client_secret):
@@ -48,44 +56,14 @@ class Backend(BackendBase):
         self.client_id = client_id
         self.client_secret = client_secret
         self.access_token = access_token
-        try:
-            self.rpc = RPC(client_id, client_secret)
-        except Exception as ex:
-            log.error(ex)
-        self.authenticate_rpc()
+        self.setup_client()
 
-    def authenticate_rpc(self):
-        if not self.access_token:
-            self.authorize()
-        self.authenticate()
-
-    def authenticate(self):
-        payload = {
-            'access_token': self.access_token
-        }
-        self.send_rpc_command('AUTHENTICATE', payload)
-
-    def authorize(self):
-        payload = {
-            'client_id': self.client_id,
-            'scopes': ['rpc', 'identify']
-        }
-        resp = self.send_rpc_command('AUTHORIZE', payload)
-        data = json.loads(resp)
-        if not data.get('data') or not data.get('data').get('code'):
-            raise Exception("invalid auth")
-        code = data.get('data').get('code')
-        token = requests.post('https://discord.com/api/oauth2/token', {
-            'grant_type': 'authorization_code',
-            'code': code,
-            'client_id': self.client_id,
-            'client_secret': self.client_secret
-        })
-        resp = token.json()
-        if not 'access_token' in resp:
-            raise Exception("invalid oauth request")
-        self.access_token = resp.get('access_token')
-        self.frontend.save_access_token(self.access_token)
+    def register_callback(self, key: str, callback: callable):
+        if self.callbacks.get(key) is None:
+            self.callbacks[key] = [callback]
+            self.discord_client.subscribe(key)
+        else:
+            self.callbacks[key].append(callback)
 
 
 backend = Backend()

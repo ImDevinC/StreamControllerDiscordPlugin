@@ -1,6 +1,7 @@
 from gi.repository import Gtk, Adw
 
 from plugins.StreamControllerDiscordPlugin.DiscordActionBase import DiscordActionBase
+from ..discordrpc.commands import VOICE_SETTINGS_UPDATE
 
 
 class MuteAction(DiscordActionBase):
@@ -10,8 +11,14 @@ class MuteAction(DiscordActionBase):
 
     def on_ready(self):
         self.load_config()
+        self.plugin_base.backend.register_callback(
+            VOICE_SETTINGS_UPDATE, self.update_display)
+
+    def update_display(self, value):
+        print(value)
 
     def load_config(self):
+        super().load_config()
         settings = self.get_settings()
         self.mode = settings.get('mode')
         if not self.mode:
@@ -28,7 +35,6 @@ class MuteAction(DiscordActionBase):
         for k in ['Mute', 'Unmute', 'Toggle']:
             self.action_model.append(k)
             if self.mode == k:
-                print('Setting to {0}:{1}', k, index)
                 found = index
             index += 1
         self.mode_row.set_selected(found)
@@ -55,6 +61,5 @@ class MuteAction(DiscordActionBase):
                 self.plugin_base.backend.set_mute(not status)
 
     def get_current_mute(self):
-        resp = self.plugin_base.backend.get_voice_settings()
-        print(resp)
+        # resp = self.plugin_base.backend.get_voice_settings()
         return False

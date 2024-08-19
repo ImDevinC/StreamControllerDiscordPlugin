@@ -53,7 +53,7 @@ class AsyncDiscord:
     def poll_callback(self, callback: callable):
         while self.polling:
             val = self.rpc.receive()
-            callback(val)
+            callback(val[0], val[1])
 
     def authorize(self):
         payload = {
