@@ -66,7 +66,7 @@ class UnixPipe:
         while True:
             recv_data = self.socket.recv(1024)
             log.debug(recv_data)
-            log.debug(recv_data.decode('UTF-8'))
+            # log.debug(recv_data.decode('UTF-8'))
             enc_header = recv_data[:8]
             all_data = all_data + recv_data
             if enc_header == HEADER_MORE_DATA:
