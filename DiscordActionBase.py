@@ -8,28 +8,33 @@ gi.require_version("Adw", "1")
 
 
 class DiscordActionBase(ActionBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.client_id: str = ""
+        self.client_secret: str = ""
+
     def get_config_rows(self) -> list:
         self.status_label = Gtk.Label(
             label=self.plugin_base.lm.get("actions.base.no-credentials"))
-        self.client_id = Adw.EntryRow(
-            title=self.plugin_base.lm.get("actions.base.client_id"))
-        self.client_secret = Adw.PasswordEntryRow(
-            title=self.plugin_base.lm.get("actions.base.client_secret"))
+        self.client_id_row = Adw.EntryRow(
+            title=self.plugin_base.lm.get("actions.base.client_id"), text=self.client_id)
+        self.client_secret_row = Adw.PasswordEntryRow(
+            title=self.plugin_base.lm.get("actions.base.client_secret"), text=self.client_secret)
         self.auth_button = Gtk.Button(
             label=self.plugin_base.lm.get("actions.base.validate"))
         self.auth_button.set_margin_top(10)
         self.auth_button.set_margin_bottom(10)
 
-        self.client_id.connect("notify::text", self.on_change_client_id)
-        self.client_secret.connect(
+        self.client_id_row.connect("notify::text", self.on_change_client_id)
+        self.client_secret_row.connect(
             "notify::text", self.on_change_client_secret)
         self.auth_button.connect("clicked", self.on_auth_clicked)
 
         group = Adw.PreferencesGroup()
         group.set_title(self.plugin_base.lm.get(
             "actions.base.credentials.title"))
-        group.add(self.client_id)
-        group.add(self.client_secret)
+        group.add(self.client_id_row)
+        group.add(self.client_secret_row)
         group.add(self.auth_button)
 
         self.load_config()
@@ -44,12 +49,8 @@ class DiscordActionBase(ActionBase):
 
     def load_config(self):
         settings = self.plugin_base.get_settings()
-        client_id = settings.setdefault("client_id", "")
-        client_secret = settings.setdefault("client_secret", "")
-        self.client_id.set_text(client_id)
-        self.client_secret.set_text(client_secret)
-
-        self.plugin_base.set_settings(settings)
+        self.client_id = settings.setdefault("client_id", "")
+        self.client_secret = settings.setdefault("client_secret", "")
 
     def update_settings(self, key, value):
         settings = self.plugin_base.get_settings()
