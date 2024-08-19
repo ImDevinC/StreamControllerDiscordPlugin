@@ -4,7 +4,8 @@ import json
 from .sockets import UnixPipe
 from .commands import *
 from .exceptions import *
-from .utils import remove_empty
+
+import requests
 
 OP_HANDSHAKE = 0
 OP_FRAME = 1
@@ -18,6 +19,7 @@ class Discord:
         self.rpc = UnixPipe()
         self.client_id = client_id
         self.client_secret = client_secret
+        self.access_token = ""
 
     def connect(self):
         self.rpc.connect()
@@ -32,9 +34,30 @@ class Discord:
     def disconnect(self):
         self.rpc.disconnect()
 
-    def authenticate(self, access_token: str):
+    def authorize(self):
         payload = {
-            'access_token': access_token
+            'client_id': self.client_id,
+            'scopes': ['rpc', 'identify']
+        }
+        resp = self._send_rpc_command(AUTHORIZE, payload)
+        data = json.loads(resp)
+        code = data.get('data').get('code')
+        token = requests.post('https://discord.com/api/oauth2/token', {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
+        }, timeout=5)
+        resp = token.json()
+        if not 'access_token' in resp:
+            raise Exception('invalid oauth request')
+        self.access_token = resp.get('access_token')
+
+    def authenticate(self):
+        if not self.access_token:
+            self.authorize()
+        payload = {
+            'access_token': self.access_token
         }
         self._send_rpc_command(AUTHENTICATE, payload)
 
@@ -53,5 +76,4 @@ class Discord:
         return json.loads(self._send_rpc_command(GET_VOICE_SETTINGS))
 
     def set_voice_settings(self, settings: dict):
-        payload = remove_empty(settings)
-        self._send_rpc_command(SET_VOICE_SETTINGS, payload)
+        self._send_rpc_command(SET_VOICE_SETTINGS, settings)

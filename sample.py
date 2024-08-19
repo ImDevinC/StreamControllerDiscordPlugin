@@ -8,7 +8,7 @@ access_token = os.getenv("ACCESS_TOKEN")
 if __name__ == '__main__':
     dc = Discord(client_id, client_secret)
     dc.connect()
-    dc.authenticate(access_token)
+    dc.authenticate()
     vs = dc.get_voice_settings()
     print(vs)
     settings = {"mute": False}
