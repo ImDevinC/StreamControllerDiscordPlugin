@@ -46,6 +46,10 @@ class AsyncDiscord:
         self.polling = True
         threading.Thread(target=self.poll_callback, args=[callback]).start()
 
+    def disconnect(self):
+        self.polling = False
+        self.rpc.disconnect()
+
     def poll_callback(self, callback: callable):
         while self.polling:
             val = self.rpc.receive()
@@ -57,8 +61,6 @@ class AsyncDiscord:
             'scopes': ['rpc', 'identify']
         }
         self._send_rpc_command(AUTHORIZE, payload)
-        resp = self.rpc.receive()
-        return json.loads(resp[1])
 
     def authenticate(self, access_token: str = None):
         if not access_token:
@@ -69,8 +71,6 @@ class AsyncDiscord:
             'access_token': self.access_token
         }
         self._send_rpc_command(AUTHENTICATE, payload)
-        resp = self.rpc.receive()
-        return json.loads(resp[1])
 
     def get_access_token(self, code: str):
         token = requests.post('https://discord.com/api/oauth2/token', {
@@ -102,3 +102,16 @@ class AsyncDiscord:
 
     def set_voice_settings(self, settings):
         self._send_rpc_command(SET_VOICE_SETTINGS, settings)
+
+    def select_voice_channel(self, channel_id: str, force: bool = False):
+        args = {
+            'channel_id': channel_id,
+            'force': force
+        }
+        self._send_rpc_command(SELECT_VOICE_CHANNEL, args)
+
+    def select_text_channel(self, channel_id: str):
+        args = {
+            'channel_id': channel_id
+        }
+        self._send_rpc_command(SELECT_TEXT_CHANNEL, args)
