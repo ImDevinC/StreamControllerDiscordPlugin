@@ -3,11 +3,14 @@ from gi.repository import Gtk, Adw
 from plugins.StreamControllerDiscordPlugin.DiscordActionBase import DiscordActionBase
 from ..discordrpc.commands import VOICE_SETTINGS_UPDATE
 
+from loguru import logger as log
+
 
 class MuteAction(DiscordActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode: str = None
+        self.muted: bool = False
 
     def on_ready(self):
         self.load_config()
@@ -15,7 +18,15 @@ class MuteAction(DiscordActionBase):
             VOICE_SETTINGS_UPDATE, self.update_display)
 
     def update_display(self, value):
-        print(value)
+        log.debug("muted is {0}, setting to {1}",
+                  self.muted, value.get('mute'))
+        self.muted = value.get('mute')
+
+    def on_tick(self):
+        if self.muted:
+            self.set_label("Muted")
+        else:
+            self.set_label("Unmuted")
 
     def load_config(self):
         super().load_config()
@@ -53,13 +64,10 @@ class MuteAction(DiscordActionBase):
     def on_key_down(self):
         match self.mode:
             case "Mute":
-                self.plugin_base.backend.set_mute(True)
+                if not self.plugin_base.backend.set_mute(True):
+                    self.show_error()
             case "Unmute":
-                self.plugin_base.backend.set_mute(False)
+                if not self.plugin_base.backend.set_mute(False):
+                    self.show_error()
             case "Toggle":
-                status = self.get_current_mute()
-                self.plugin_base.backend.set_mute(not status)
-
-    def get_current_mute(self):
-        # resp = self.plugin_base.backend.get_voice_settings()
-        return False
+                self.plugin_base.backend.set_mute(not self.muted)

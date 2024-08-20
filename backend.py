@@ -8,6 +8,8 @@ from loguru import logger as log
 
 from discordrpc import AsyncDiscord, commands
 
+import asyncio
+
 
 class Backend(BackendBase):
     def __init__(self):
@@ -19,10 +21,10 @@ class Backend(BackendBase):
         self.callbacks: dict = {}
 
     def discord_callback(self, code, event):
-        log.debug("code {0}", code)
-        log.debug("event {0}", event)
         if code == 0:
             return
+        log.debug("code {0}", code)
+        log.debug("event {0}", event)
         event = json.loads(event)
         match event.get('cmd'):
             case commands.AUTHORIZE:
@@ -32,23 +34,24 @@ class Backend(BackendBase):
                 self.discord_client.authenticate(self.access_token)
                 self.frontend.save_access_token(self.access_token)
             case commands.AUTHENTICATE:
-                print("what")
                 for k in self.callbacks:
-                    print(f"sub to {k}")
                     self.discord_client.subscribe(k)
             case commands.DISPATCH:
-                pass
+                evt = event.get('evt')
+                for callback in self.callbacks.get(evt):
+                    callback(event.get('data'))
 
     def setup_client(self):
-        self.discord_client = AsyncDiscord(self.client_id, self.client_secret)
-        self.discord_client.connect(self.discord_callback)
-        if not self.access_token:
-            self.discord_client.authorize()
-        else:
-            self.discord_client.authenticate(self.access_token)
-
-    def set_mute(self, muted: bool):
-        self.discord_client.set_voice_settings({'mute': muted})
+        try:
+            self.discord_client = AsyncDiscord(
+                self.client_id, self.client_secret)
+            self.discord_client.connect(self.discord_callback)
+            if not self.access_token:
+                self.discord_client.authorize()
+            else:
+                self.discord_client.authenticate(self.access_token)
+        except Exception as ex:
+            log.error("failed to setup discord client: {0}", ex)
 
     def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = ""):
         if None in (client_id, client_secret) or "" in (client_id, client_secret):
@@ -61,9 +64,21 @@ class Backend(BackendBase):
     def register_callback(self, key: str, callback: callable):
         if self.callbacks.get(key) is None:
             self.callbacks[key] = [callback]
-            self.discord_client.subscribe(key)
+            try:
+                self.discord_client.subscribe(key)
+            except Exception as ex:
+                log.error("failed to subscribe {0}", ex)
         else:
             self.callbacks[key].append(callback)
+
+    def set_mute(self, muted: bool) -> bool:
+        log.debug("setting muted to {0}", muted)
+        try:
+            self.discord_client.set_voice_settings({'mute': muted})
+        except Exception as ex:
+            log.error("failed to set mute {0}", ex)
+            return False
+        return True
 
 
 backend = Backend()
