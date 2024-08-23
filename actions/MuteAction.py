@@ -16,11 +16,11 @@ class MuteAction(DiscordActionBase):
         self.load_config()
         self.plugin_base.backend.register_callback(
             VOICE_SETTINGS_UPDATE, self.update_display)
+        self.plugin_base.add_callback(
+            VOICE_SETTINGS_UPDATE, self.update_display)
 
-    def update_display(self, value):
-        log.debug("muted is {0}, setting to {1}",
-                  self.muted, value.get('mute'))
-        self.muted = value.get('mute')
+    def update_display(self, value: dict):
+        self.muted = value['mute']
 
     def on_tick(self):
         if self.muted:

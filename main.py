@@ -7,10 +7,14 @@ from src.backend.PluginManager.ActionHolder import ActionHolder
 # Import actions
 from .actions.MuteAction import MuteAction
 
+from loguru import logger as log
+
 
 class PluginTemplate(PluginBase):
     def __init__(self):
         super().__init__()
+
+        self.callbacks = {}
 
         self.lm = self.locale_manager
         self.lm.set_to_os_default()
@@ -48,3 +52,12 @@ class PluginTemplate(PluginBase):
         settings = self.get_settings()
         settings['access_token'] = access_token
         self.set_settings(settings)
+
+    def add_callback(self, key: str, callback: callable):
+        callbacks = self.callbacks.get(key, [])
+        callbacks.append(callback)
+        self.callbacks[key] = callbacks
+
+    def handle_callback(self, key: str, data: any):
+        for callback in self.callbacks.get(key):
+            callback(data)

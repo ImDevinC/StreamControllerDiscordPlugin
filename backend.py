@@ -1,14 +1,11 @@
 import uuid
 import json
-import requests
 
 from streamcontroller_plugin_tools import BackendBase
 
 from loguru import logger as log
 
 from discordrpc import AsyncDiscord, commands
-
-import asyncio
 
 
 class Backend(BackendBase):
@@ -38,8 +35,9 @@ class Backend(BackendBase):
                     self.discord_client.subscribe(k)
             case commands.DISPATCH:
                 evt = event.get('evt')
-                for callback in self.callbacks.get(evt):
-                    callback(event.get('data'))
+                log.debug(
+                    "got dispatch event {0}: {1}", evt, event.get('data'))
+                self.frontend.handle_callback(evt, event.get('data'))
 
     def setup_client(self):
         try:
@@ -62,17 +60,12 @@ class Backend(BackendBase):
         self.setup_client()
 
     def register_callback(self, key: str, callback: callable):
-        if self.callbacks.get(key) is None:
-            self.callbacks[key] = [callback]
-            try:
-                self.discord_client.subscribe(key)
-            except Exception as ex:
-                log.error("failed to subscribe {0}", ex)
-        else:
-            self.callbacks[key].append(callback)
+        callbacks = self.callbacks.get(key, [])
+        callbacks.append(callback)
+        self.callbacks[key] = callbacks
+        self.discord_client.subscribe(key)
 
     def set_mute(self, muted: bool) -> bool:
-        log.debug("setting muted to {0}", muted)
         try:
             self.discord_client.set_voice_settings({'mute': muted})
         except Exception as ex:
