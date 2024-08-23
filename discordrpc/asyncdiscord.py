@@ -103,6 +103,9 @@ class AsyncDiscord:
     def set_voice_settings(self, settings):
         self._send_rpc_command(SET_VOICE_SETTINGS, settings)
 
+    def get_voice_settings(self):
+        self._send_rpc_command(GET_VOICE_SETTINGS)
+
     def select_voice_channel(self, channel_id: str, force: bool = False):
         args = {
             'channel_id': channel_id,

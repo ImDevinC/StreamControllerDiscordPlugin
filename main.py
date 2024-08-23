@@ -7,6 +7,7 @@ from src.backend.PluginManager.ActionHolder import ActionHolder
 # Import actions
 from .actions.MuteAction import MuteAction
 from .actions.DeafenAction import DeafenAction
+from .actions.ChangeVoiceChannelAction import ChangeVoiceChannelAction
 
 from loguru import logger as log
 
@@ -47,6 +48,14 @@ class PluginTemplate(PluginBase):
             action_name="Deafen"
         )
         self.add_action_holder(self.message_deafen_action_holder)
+
+        self.change_voice_channel_action = ActionHolder(
+            plugin_base=self,
+            action_base=ChangeVoiceChannelAction,
+            action_id="com_imdevinc_StreamControllerDiscordPlugin::ChangeVoiceChannel",
+            action_name="Change Voice Channel"
+        )
+        self.add_action_holder(self.change_voice_channel_action)
 
         self.register(
             plugin_name="Discord Integration",

@@ -81,5 +81,14 @@ class Backend(BackendBase):
             return False
         return True
 
+    def change_voice_channel(self, channel_id: str = None) -> bool:
+        try:
+            self.discord_client.select_voice_channel(channel_id, True)
+        except Exception as ex:
+            log.error(
+                "failed to change voice channel {0}. {1}", channel_id, ex)
+            return False
+        return True
+
 
 backend = Backend()
