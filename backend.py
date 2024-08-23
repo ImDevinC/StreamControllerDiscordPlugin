@@ -90,5 +90,14 @@ class Backend(BackendBase):
             return False
         return True
 
+    def change_text_channel(self, channel_id: str) -> bool:
+        try:
+            self.discord_client.select_text_channel(channel_id)
+        except Exception as ex:
+            log.error(
+                "failed to change text channel {0}. {1}", channel_id, ex)
+            return False
+        return True
+
 
 backend = Backend()
