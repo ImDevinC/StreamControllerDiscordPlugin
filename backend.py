@@ -73,5 +73,13 @@ class Backend(BackendBase):
             return False
         return True
 
+    def set_deafen(self, muted: bool) -> bool:
+        try:
+            self.discord_client.set_voice_settings({'deaf': muted})
+        except Exception as ex:
+            log.error("failed to set deaf {0}", ex)
+            return False
+        return True
+
 
 backend = Backend()

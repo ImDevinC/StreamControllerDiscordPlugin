@@ -6,6 +6,7 @@ from src.backend.PluginManager.ActionHolder import ActionHolder
 
 # Import actions
 from .actions.MuteAction import MuteAction
+from .actions.DeafenAction import DeafenAction
 
 from loguru import logger as log
 
@@ -38,6 +39,14 @@ class PluginTemplate(PluginBase):
             action_name="Mute Microphone"
         )
         self.add_action_holder(self.message_mute_action_holder)
+
+        self.message_deafen_action_holder = ActionHolder(
+            plugin_base=self,
+            action_base=DeafenAction,
+            action_id="com_imdevinc_StreamControllerDiscordPlugin::Deafen",
+            action_name="Deafen"
+        )
+        self.add_action_holder(self.message_deafen_action_holder)
 
         self.register(
             plugin_name="Discord Integration",
