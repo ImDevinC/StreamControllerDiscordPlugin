@@ -18,9 +18,6 @@ Full list here: https://discord.com/developers/docs/topics/rpc
 - SetVoiceSettings: Allows setting voice settings
 
 # Flatpak
-> [!WARNING]
-> This plugin has not been tested on the Flatpak version of StreamController yet
-
 If you are using the Flatpak version of Discord, Discord may not properly setup
 the IPC channels. You will need to use the commands below to create the IPC
 channel to communicate with Discord.
@@ -30,3 +27,8 @@ mkdir -p ~/.config/user-tmpfiles.d
 echo 'L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0' > ~/.config/user-tmpfiles.d/discord-rpc.conf
 systemctl --user enable --now systemd-tmpfiles-setup.service
 ```
+
+If you are using the Flatpak version of StreamController, you will need to make sure StreamController has
+access to `/run/user/1000/discord-ipc-*` so it can access the IPC files.
+> [!NOTE]
+> There is probably a better way to do this, will investigate later
