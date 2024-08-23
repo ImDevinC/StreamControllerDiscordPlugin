@@ -16,3 +16,17 @@ See `sample.py` for an example of how this works (generating an access token is 
 Full list here: https://discord.com/developers/docs/topics/rpc
 - GetVoiceSettings: Returns the current voice settings for the logged in user
 - SetVoiceSettings: Allows setting voice settings
+
+# Flatpak
+> [!WARNING]
+> This plugin has not been tested on the Flatpak version of StreamController yet
+
+If you are using the Flatpak version of Discord, Discord may not properly setup
+the IPC channels. You will need to use the commands below to create the IPC
+channel to communicate with Discord.
+
+```bash
+mkdir -p ~/.config/user-tmpfiles.d
+echo 'L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0' > ~/.config/user-tmpfiles.d/discord-rpc.conf
+systemctl --user enable --now systemd-tmpfiles-setup.service
+```
