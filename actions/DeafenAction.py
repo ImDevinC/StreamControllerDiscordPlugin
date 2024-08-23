@@ -1,6 +1,6 @@
 from gi.repository import Gtk, Adw
 
-from plugins.StreamControllerDiscordPlugin.DiscordActionBase import DiscordActionBase
+from ..DiscordActionBase import DiscordActionBase
 from ..discordrpc.commands import VOICE_SETTINGS_UPDATE
 
 from loguru import logger as log

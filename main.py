@@ -29,7 +29,7 @@ class PluginTemplate(PluginBase):
 
         backend_path = os.path.join(self.PATH, 'backend.py')
         self.launch_backend(backend_path=backend_path,
-                            open_in_terminal=True, venv_path=os.path.join(self.PATH, '.venv'))
+                            open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
         self.wait_for_backend(10)
         self.backend.update_client_credentials(
             client_id, client_secret, access_token)

@@ -1,6 +1,6 @@
 {
-    "version": "",
-    "thumbnail": "",
-    "id": "",
-    "name": ""
+  "version": "0.0.1",
+  "thumbnail": "",
+  "id": "com_imdevinc_StreamControllerDiscordPlugin",
+  "name": "Discord Plugin"
 }

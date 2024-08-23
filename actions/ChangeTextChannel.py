@@ -1,6 +1,6 @@
 from gi.repository import Gtk, Adw
 
-from plugins.StreamControllerDiscordPlugin.DiscordActionBase import DiscordActionBase
+from ..DiscordActionBase import DiscordActionBase
 from ..discordrpc.commands import VOICE_CHANNEL_SELECT
 
 from loguru import logger as log
@@ -22,10 +22,7 @@ class ChangeTextChannel(DiscordActionBase):
         log.debug("update_display: {0}", value)
 
     def on_tick(self):
-        if self.current_channel:
-            self.set_label(self.current_channel)
-        else:
-            self.set_label("Change text channel")
+        pass
 
     def load_config(self):
         super().load_config()
