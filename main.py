@@ -38,7 +38,7 @@ class PluginTemplate(PluginBase):
             plugin_base=self,
             action_base=MuteAction,
             action_id="com_imdevinc_StreamControllerDiscordPlugin::Mute",
-            action_name="Mute Microphone"
+            action_name="Mute"
         )
         self.add_action_holder(self.message_mute_action_holder)
 
@@ -67,7 +67,7 @@ class PluginTemplate(PluginBase):
         self.add_action_holder(self.change_text_channel_action)
 
         self.register(
-            plugin_name="Discord Integration",
+            plugin_name="Discord",
             github_repo="https://github.com/imdevinc/StreamControllerDiscordPlugin",
             plugin_version="1.0.0",
             app_version="1.5.0"

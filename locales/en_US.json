@@ -7,5 +7,6 @@
   "actions.base.credentials.title": "Discord Credentials",
   "actions.info.link.label": "Checkout how to configure this plugin on",
   "actions.info.link.text": "GitHub",
-  "actions.mute.choice.title": "Button Press Action"
+  "actions.mute.choice.title": "Button Press Action",
+  "actions.mute.label_choice.title": "Display Location"
 }
