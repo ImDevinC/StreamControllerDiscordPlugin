@@ -1,9 +1,9 @@
-
 import uuid
 import json
 import threading
 
 import requests
+from loguru import logger as log
 
 from .sockets import UnixPipe
 from .commands import *
@@ -33,6 +33,9 @@ class AsyncDiscord:
         if args is not None:
             payload['args'] = args
         self.rpc.send(payload, OP_FRAME)
+
+    def is_connected(self):
+        return self.polling
 
     def connect(self, callback: callable):
         self.rpc.connect()

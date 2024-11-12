@@ -4,6 +4,8 @@ import struct
 import json
 import re
 
+from loguru import logger as log
+
 from .exceptions import DiscordNotOpened
 
 

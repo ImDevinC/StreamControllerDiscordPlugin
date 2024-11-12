@@ -15,9 +15,9 @@ class MuteAction(DiscordActionBase):
 
     def on_ready(self):
         self.load_config()
-        self.plugin_base.backend.register_callback(
-            VOICE_SETTINGS_UPDATE, self.update_display)
         self.plugin_base.add_callback(
+            VOICE_SETTINGS_UPDATE, self.update_display)
+        self.plugin_base.backend.register_callback(
             VOICE_SETTINGS_UPDATE, self.update_display)
 
     def update_display(self, value: dict):

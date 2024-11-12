@@ -20,8 +20,6 @@ class Backend(BackendBase):
     def discord_callback(self, code, event):
         if code == 0:
             return
-        log.debug("code {0}", code)
-        log.debug("event {0}", event)
         event = json.loads(event)
         match event.get('cmd'):
             case commands.AUTHORIZE:
@@ -35,8 +33,6 @@ class Backend(BackendBase):
                     self.discord_client.subscribe(k)
             case commands.DISPATCH:
                 evt = event.get('evt')
-                log.debug(
-                    "got dispatch event {0}: {1}", evt, event.get('data'))
                 self.frontend.handle_callback(evt, event.get('data'))
 
     def setup_client(self):
@@ -66,6 +62,8 @@ class Backend(BackendBase):
         self.discord_client.subscribe(key)
 
     def set_mute(self, muted: bool) -> bool:
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
         try:
             self.discord_client.set_voice_settings({'mute': muted})
         except Exception as ex:
@@ -74,6 +72,8 @@ class Backend(BackendBase):
         return True
 
     def set_deafen(self, muted: bool) -> bool:
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
         try:
             self.discord_client.set_voice_settings({'deaf': muted})
         except Exception as ex:
@@ -82,6 +82,8 @@ class Backend(BackendBase):
         return True
 
     def change_voice_channel(self, channel_id: str = None) -> bool:
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
         try:
             self.discord_client.select_voice_channel(channel_id, True)
         except Exception as ex:
@@ -91,6 +93,8 @@ class Backend(BackendBase):
         return True
 
     def change_text_channel(self, channel_id: str) -> bool:
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
         try:
             self.discord_client.select_text_channel(channel_id)
         except Exception as ex:
