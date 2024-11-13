@@ -1,4 +1,3 @@
-import uuid
 import json
 
 from streamcontroller_plugin_tools import BackendBase
@@ -30,6 +29,7 @@ class Backend(BackendBase):
                 self.discord_client.authenticate(self.access_token)
                 self.frontend.save_access_token(self.access_token)
             case commands.AUTHENTICATE:
+                self.frontend.on_auth_callback(True)
                 self._is_authed = True
                 for k in self.callbacks:
                     self.discord_client.subscribe(k)
@@ -47,6 +47,7 @@ class Backend(BackendBase):
             else:
                 self.discord_client.authenticate(self.access_token)
         except Exception as ex:
+            self.frontend.on_auth_callback(False, str(ex))
             log.error("failed to setup discord client: {0}", ex)
 
     def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = ""):
@@ -66,7 +67,8 @@ class Backend(BackendBase):
         callbacks = self.callbacks.get(key, [])
         callbacks.append(callback)
         self.callbacks[key] = callbacks
-        self.discord_client.subscribe(key)
+        if self._is_authed:
+            self.discord_client.subscribe(key)
 
     def set_mute(self, muted: bool) -> bool:
         if self.discord_client is None or not self.discord_client.is_connected():

@@ -1,6 +1,7 @@
 from loguru import logger as log
 from gi.repository import Gtk, Adw
 import gi
+import threading
 
 from src.backend.PluginManager.ActionBase import ActionBase
 
@@ -79,8 +80,8 @@ class DiscordActionBase(ActionBase):
         client_secret = settings.get('client_secret')
         self.auth_button.set_sensitive(False)
         self.plugin_base.auth_callback_fn = self.on_auth_completed
-        self.plugin_base.backend.update_client_credentials(
-            client_id, client_secret)
+        threading.Thread(target=self.plugin_base.backend.update_client_credentials, daemon=True,
+                         name="update_client_credentials", args=[client_id, client_secret]).start()
 
     def _set_status(self, message: str, is_error: bool = False):
         self.status_label.set_label(message)
