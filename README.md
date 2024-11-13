@@ -1,13 +1,8 @@
-# WIP
-This is still a work in progress and not fully functional. Use at your own risk.
-
 ## Expected flow
 1. Create a Discord app at https://discord.com/developers/applications
 1. Get a client ID and Client Secret
-1. When you add an action, add those values in
-> [!NOTE]
-> For now, you will most likely need to restart StreamController after authenticating.
-> I will work on this in the future
+1. Make sure to set a `redirect url` of `http://localhost:9000` in the Oauth2 settings page
+1. Use the Client ID and Client Secret on any of the actions (applying to one action will apply to all)
 
 ## Currently supported features
 Currently, this plugin supports the following:
@@ -27,8 +22,7 @@ mkdir -p ~/.config/user-tmpfiles.d
 echo 'L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0' > ~/.config/user-tmpfiles.d/discord-rpc.conf
 systemctl --user enable --now systemd-tmpfiles-setup.service
 ```
+You will also need to make sure that Discord has access to `/run/user/1000/` to be able to create the IPC file.
 
 If you are using the Flatpak version of StreamController, you will need to make sure StreamController has
 access to `/run/user/1000/discord-ipc-*` so it can access the IPC files.
-> [!NOTE]
-> There is probably a better way to do this, will investigate later
