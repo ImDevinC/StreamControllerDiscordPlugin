@@ -19,6 +19,8 @@ class PluginTemplate(PluginBase):
 
         self.callbacks = {}
 
+        self.auth_callback_fn: callable = None
+
         self.lm = self.locale_manager
         self.lm.set_to_os_default()
 
@@ -30,7 +32,7 @@ class PluginTemplate(PluginBase):
         backend_path = os.path.join(self.PATH, 'backend.py')
         self.launch_backend(backend_path=backend_path,
                             open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
-        self.wait_for_backend(10)
+
         self.backend.update_client_credentials(
             client_id, client_secret, access_token)
 
@@ -88,3 +90,7 @@ class PluginTemplate(PluginBase):
     def handle_callback(self, key: str, data: any):
         for callback in self.callbacks.get(key):
             callback(data)
+
+    def on_auth_callback(self, success: bool, message: str = None):
+        if self.auth_callback_fn:
+            self.auth_callback_fn(success, message)

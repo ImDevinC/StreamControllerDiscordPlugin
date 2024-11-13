@@ -1,6 +1,6 @@
 {
   "plugin.name": "Discord",
-  "actions.base.no-credentials": "Missing Credentials",
+  "actions.base.credentials.no-credentials": "Missing Credentials",
   "actions.base.client_id": "Client ID",
   "actions.base.client_secret": "Client Secret",
   "actions.base.validate": "Validate",
@@ -8,5 +8,8 @@
   "actions.info.link.label": "Checkout how to configure this plugin on",
   "actions.info.link.text": "GitHub",
   "actions.mute.choice.title": "Button Press Action",
-  "actions.mute.label_choice.title": "Display Location"
+  "actions.mute.label_choice.title": "Display Location",
+  "actions.base.credentials.authenticated": "Authenticated successfully",
+  "actions.base.credentials.failed": "Failed to authenticate",
+  "actions.base.credentials.missing_client_info": "Missing Client ID or Client Secret"
 }
