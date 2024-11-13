@@ -16,6 +16,7 @@ class Backend(BackendBase):
         self.access_token: str = None
         self.discord_client: AsyncDiscord = None
         self.callbacks: dict = {}
+        self._is_authed: bool = False
 
     def discord_callback(self, code, event):
         if code == 0:
@@ -29,6 +30,7 @@ class Backend(BackendBase):
                 self.discord_client.authenticate(self.access_token)
                 self.frontend.save_access_token(self.access_token)
             case commands.AUTHENTICATE:
+                self._is_authed = True
                 for k in self.callbacks:
                     self.discord_client.subscribe(k)
             case commands.DISPATCH:
@@ -49,11 +51,16 @@ class Backend(BackendBase):
 
     def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = ""):
         if None in (client_id, client_secret) or "" in (client_id, client_secret):
+            self.frontend.on_auth_callback(
+                False, "actions.base.credentials.missing_client_info")
             return
         self.client_id = client_id
         self.client_secret = client_secret
         self.access_token = access_token
         self.setup_client()
+
+    def is_authed(self) -> bool:
+        return self._is_authed
 
     def register_callback(self, key: str, callback: callable):
         callbacks = self.callbacks.get(key, [])

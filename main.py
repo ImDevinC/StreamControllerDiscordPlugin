@@ -19,6 +19,8 @@ class PluginTemplate(PluginBase):
 
         self.callbacks = {}
 
+        self.auth_callback_fn: callable = None
+
         self.lm = self.locale_manager
         self.lm.set_to_os_default()
 
@@ -88,3 +90,7 @@ class PluginTemplate(PluginBase):
     def handle_callback(self, key: str, data: any):
         for callback in self.callbacks.get(key):
             callback(data)
+
+    def on_auth_callback(self, success: bool, message: str = None):
+        if self.auth_callback_fn:
+            self.auth_callback_fn(success, message)
