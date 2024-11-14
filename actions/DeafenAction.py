@@ -9,7 +9,7 @@ from loguru import logger as log
 class DeafenAction(DiscordActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mode: str = None
+        self.mode: str = 'Toggle'
         self.deafened: bool = False
         self.label_location: str = 'Bottom'
 
@@ -25,9 +25,10 @@ class DeafenAction(DiscordActionBase):
 
     def on_tick(self):
         if self.deafened:
-            self.set_label("Deafened", position=self.label_location)
+            self.set_label("Deafened", position=self.label_location.lower())
         else:
-            self.set_label("Not Deafened", position=self.label_location)
+            self.set_label(
+                "Not\nDeafened", position=self.label_location.lower())
 
     def load_config(self):
         super().load_config()
@@ -91,9 +92,10 @@ class DeafenAction(DiscordActionBase):
         match self.mode:
             case "Deafen":
                 if not self.plugin_base.backend.set_deafen(True):
-                    self.show_error()
+                    self.show_error(5)
             case "Undeafen":
                 if not self.plugin_base.backend.set_deafen(False):
-                    self.show_error()
+                    self.show_error(5)
             case "Toggle":
-                self.plugin_base.backend.set_deafen(not self.deafened)
+                if not self.plugin_base.backend.set_deafen(not self.deafened):
+                    self.show_error(5)

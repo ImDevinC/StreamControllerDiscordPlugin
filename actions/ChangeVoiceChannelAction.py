@@ -21,13 +21,14 @@ class ChangeVoiceChannelAction(DiscordActionBase):
             VOICE_CHANNEL_SELECT, self.update_display)
 
     def update_display(self, value: dict):
-        log.debug("update_display: {0}", value)
+        pass
 
     def on_tick(self):
         if self.current_channel:
             self.set_label(self.current_channel)
         else:
-            self.set_label("Join voice channel")
+            self.set_label(self.plugin_base.lm.get(
+                "actions.changevoicechannel.update_channel"))
 
     def load_config(self):
         super().load_config()
@@ -67,4 +68,5 @@ class ChangeVoiceChannelAction(DiscordActionBase):
             self.on_dial_down()
 
     def on_key_hold_start(self):
-        self.plugin_base.backend.change_voice_channel(None)
+        if not self.plugin_base.backend.change_voice_channel(None):
+            self.show_error(5)

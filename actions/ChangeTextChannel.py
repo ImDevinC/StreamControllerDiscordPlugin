@@ -19,10 +19,14 @@ class ChangeTextChannel(DiscordActionBase):
             VOICE_CHANNEL_SELECT, self.update_display)
 
     def update_display(self, value: dict):
-        log.debug("update_display: {0}", value)
+        pass
 
     def on_tick(self):
-        pass
+        if self.channel_id:
+            self.set_label(self.channel_id)
+        else:
+            self.set_label(self.plugin_base.lm.get(
+                "actions.changetextchannel.update_channel"))
 
     def load_config(self):
         super().load_config()
@@ -47,4 +51,5 @@ class ChangeTextChannel(DiscordActionBase):
     def on_key_down(self):
         settings = self.get_settings()
         channel_id = settings.get('channel_id')
-        self.plugin_base.backend.change_text_channel(channel_id)
+        if not self.plugin_base.backend.change_text_channel(channel_id):
+            self.show_error(5)

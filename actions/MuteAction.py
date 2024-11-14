@@ -91,9 +91,10 @@ class MuteAction(DiscordActionBase):
         match self.mode:
             case "Mute":
                 if not self.plugin_base.backend.set_mute(True):
-                    self.show_error()
+                    self.show_error(5)
             case "Unmute":
                 if not self.plugin_base.backend.set_mute(False):
-                    self.show_error()
+                    self.show_error(5)
             case "Toggle":
-                self.plugin_base.backend.set_mute(not self.muted)
+                if not self.plugin_base.backend.set_mute(not self.muted):
+                    self.show_error(5)
