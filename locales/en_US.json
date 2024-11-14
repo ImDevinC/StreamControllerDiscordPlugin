@@ -11,5 +11,11 @@
   "actions.mute.label_choice.title": "Display Location",
   "actions.base.credentials.authenticated": "Authenticated successfully",
   "actions.base.credentials.failed": "Failed to authenticate",
-  "actions.base.credentials.missing_client_info": "Missing Client ID or Client Secret"
+  "actions.base.credentials.missing_client_info": "Missing Client ID or Client Secret",
+  "actions.deafen.choice.title": "Button Press Action",
+  "actions.deafen.label_choice.title": "Display Location",
+  "actions.changetextchannel.channel_id": "Channel ID",
+  "actions.changetextchannel.update_channel": "Configure\nChannel",
+  "actions.changevoicechannel.channel_id": "Channel ID",
+  "actions.changevoicechannel.update_channel": "Configure\nChannel"
 }
