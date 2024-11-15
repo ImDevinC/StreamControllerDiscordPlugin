@@ -76,26 +76,26 @@ class MuteAction(DiscordActionBase):
         self.label_row.set_selected(found)
         self.label_row.connect("notify::selected", self.on_change_label_row)
 
-        # icon_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 1)
-        # icon_box.set_spacing(18)
-        # icon_box.set_halign(Gtk.Align.CENTER)
-        # for title, icon in {"Mute": "Discord_Mic_-_Off.png", "Unmute": "Discord_Mic_-_On.png"}.items():
-        #    box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 1)
-        #    box.append(Gtk.Label.new(f"{title} Icon"))
-        #    image = Gtk.Image.new_from_file(os.path.join(
-        #        self.plugin_base.PATH, "assets", icon))
-        #    image.set_pixel_size(32)
-        #    box.append(image)
-        #    button = Gtk.Button.new()
-        #    button.set_child(box)
-        #    icon_box.append(button)
+        icon_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 1)
+        icon_box.set_spacing(18)
+        icon_box.set_halign(Gtk.Align.CENTER)
+        for title, icon in {"Mute": "Discord_Mic_-_Off.png", "Unmute": "Discord_Mic_-_On.png"}.items():
+            box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 1)
+            box.append(Gtk.Label.new(f"{title} Icon"))
+            image = Gtk.Image.new_from_file(os.path.join(
+                self.plugin_base.PATH, "assets", icon))
+            image.set_pixel_size(32)
+            box.append(image)
+            button = Gtk.Button.new()
+            button.set_child(box)
+            icon_box.append(button)
 
-        # icon_row = Adw.PreferencesRow()
-        # icon_row.set_child(icon_box)
+        icon_row = Adw.PreferencesRow()
+        icon_row.set_child(icon_box)
 
         super_rows.append(self.mode_row)
         super_rows.append(self.label_row)
-        # super_rows.append(icon_row)
+        super_rows.append(icon_row)
         return super_rows
 
     def on_change_mode(self, *_):
