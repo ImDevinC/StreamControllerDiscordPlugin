@@ -20,7 +20,11 @@ class Backend(BackendBase):
     def discord_callback(self, code, event):
         if code == 0:
             return
-        event = json.loads(event)
+        try:
+            event = json.loads(event)
+        except Exception as ex:
+            log.error(f"failed to parse discord event: {ex}")
+            return
         match event.get('cmd'):
             case commands.AUTHORIZE:
                 auth_code = event.get('data').get('code')

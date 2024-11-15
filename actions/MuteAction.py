@@ -1,4 +1,6 @@
-from gi.repository import Gtk, Adw
+import os
+
+from gi.repository import Gtk, Adw, Gio, GObject
 
 from ..DiscordActionBase import DiscordActionBase
 from ..discordrpc.commands import VOICE_SETTINGS_UPDATE
@@ -22,6 +24,11 @@ class MuteAction(DiscordActionBase):
 
     def update_display(self, value: dict):
         self.muted = value['mute']
+        image = "Discord_Mic_-_On.png"
+        if self.muted:
+            image = "Discord_Mic_-_Off.png"
+        self.set_media(media_path=os.path.join(
+            self.plugin_base.PATH, "assets", image), size=0.85)
 
     def on_tick(self):
         if self.muted:
@@ -41,6 +48,7 @@ class MuteAction(DiscordActionBase):
 
     def get_config_rows(self):
         super_rows = super().get_config_rows()
+
         self.action_model = Gtk.StringList()
         self.mode_row = Adw.ComboRow(
             model=self.action_model, title=self.plugin_base.lm.get("actions.mute.choice.title"))
@@ -68,8 +76,26 @@ class MuteAction(DiscordActionBase):
         self.label_row.set_selected(found)
         self.label_row.connect("notify::selected", self.on_change_label_row)
 
+        # icon_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 1)
+        # icon_box.set_spacing(18)
+        # icon_box.set_halign(Gtk.Align.CENTER)
+        # for title, icon in {"Mute": "Discord_Mic_-_Off.png", "Unmute": "Discord_Mic_-_On.png"}.items():
+        #    box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 1)
+        #    box.append(Gtk.Label.new(f"{title} Icon"))
+        #    image = Gtk.Image.new_from_file(os.path.join(
+        #        self.plugin_base.PATH, "assets", icon))
+        #    image.set_pixel_size(32)
+        #    box.append(image)
+        #    button = Gtk.Button.new()
+        #    button.set_child(box)
+        #    icon_box.append(button)
+
+        # icon_row = Adw.PreferencesRow()
+        # icon_row.set_child(icon_box)
+
         super_rows.append(self.mode_row)
         super_rows.append(self.label_row)
+        # super_rows.append(icon_row)
         return super_rows
 
     def on_change_mode(self, *_):
