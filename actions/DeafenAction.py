@@ -1,3 +1,5 @@
+import os
+
 from gi.repository import Gtk, Adw
 
 from ..DiscordActionBase import DiscordActionBase
@@ -22,6 +24,11 @@ class DeafenAction(DiscordActionBase):
 
     def update_display(self, value: dict):
         self.deafened = value['deaf']
+        image = "undeafen.png"
+        if self.deafened:
+            image = "deafen.png"
+        self.set_media(media_path=os.path.join(
+            self.plugin_base.PATH, "assets", image), size=0.85)
 
     def on_tick(self):
         if self.deafened:
@@ -35,7 +42,7 @@ class DeafenAction(DiscordActionBase):
         settings = self.get_settings()
         self.mode = settings.get('mode')
         if not self.mode:
-            self.mode = 'Deafen'
+            self.mode = 'Toggle'
         self.label_location = settings.get('label_location')
         if not self.label_location:
             self.label_location = 'Bottom'
