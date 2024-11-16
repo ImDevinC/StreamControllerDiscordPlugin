@@ -24,9 +24,9 @@ class MuteAction(DiscordActionBase):
 
     def update_display(self, value: dict):
         self.muted = value['mute']
-        image = "Discord_Mic_-_On.png"
+        image = "unmute.png"
         if self.muted:
-            image = "Discord_Mic_-_Off.png"
+            image = "mute.png"
         self.set_media(media_path=os.path.join(
             self.plugin_base.PATH, "assets", image), size=0.85)
 
