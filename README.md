@@ -31,6 +31,7 @@ echo 'L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0' > ~/.
 systemctl --user enable --now systemd-tmpfiles-setup.service
 ```
 You will also need to make sure that Discord has access to `/run/user/1000/` to be able to create the IPC file.
+Configurable by allowing access to `xdg-run/discord:create`.
 
 If you are using the Flatpak version of StreamController, you will need to make sure StreamController has
 access to `/run/user/1000/discord-ipc-*` so it can access the IPC files.
