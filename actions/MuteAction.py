@@ -23,6 +23,11 @@ class MuteAction(DiscordActionBase):
             VOICE_SETTINGS_UPDATE, self.update_display)
 
     def update_display(self, value: dict):
+        if not self.plugin_base.backend:
+            self.show_error()
+            return
+        else:
+            self.hide_error()
         self.muted = value['mute']
         image = "unmute.png"
         if self.muted:

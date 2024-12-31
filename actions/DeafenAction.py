@@ -23,6 +23,11 @@ class DeafenAction(DiscordActionBase):
             VOICE_SETTINGS_UPDATE, self.update_display)
 
     def update_display(self, value: dict):
+        if not self.plugin_base.backend:
+            self.show_error()
+            return
+        else:
+            self.hide_error()
         self.deafened = value['deaf']
         image = "undeafen.png"
         if self.deafened:

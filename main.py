@@ -24,18 +24,6 @@ class PluginTemplate(PluginBase):
         self.lm = self.locale_manager
         self.lm.set_to_os_default()
 
-        settings = self.get_settings()
-        client_id = settings.get('client_id', '')
-        client_secret = settings.get('client_secret', '')
-        access_token = settings.get('access_token', '')
-
-        backend_path = os.path.join(self.PATH, 'backend.py')
-        self.launch_backend(backend_path=backend_path,
-                            open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
-
-        self.backend.update_client_credentials(
-            client_id, client_secret, access_token)
-
         self.message_mute_action_holder = ActionHolder(
             plugin_base=self,
             action_base=MuteAction,
@@ -74,6 +62,19 @@ class PluginTemplate(PluginBase):
             plugin_version="1.0.0",
             app_version="1.5.0"
         )
+
+        settings = self.get_settings()
+        client_id = settings.get('client_id', '')
+        client_secret = settings.get('client_secret', '')
+        access_token = settings.get('access_token', '')
+
+        backend_path = os.path.join(self.PATH, 'backend.py')
+        self.launch_backend(backend_path=backend_path,
+                            open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
+        self.wait_for_backend(10)
+
+        self.backend.update_client_credentials(
+            client_id, client_secret, access_token)
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
 
