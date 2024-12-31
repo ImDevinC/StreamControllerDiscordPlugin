@@ -115,6 +115,16 @@ class Backend(BackendBase):
                 "failed to change text channel {0}. {1}", channel_id, ex)
             return False
         return True
+    
+    def set_push_to_talk(self, ptt: str) -> bool:
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
+        try:
+            self.discord_client.set_voice_settings({'mode': {"type": ptt}})
+        except Exception as ex:
+            log.error("failed to set push to talk {0}", ex)
+            return False
+        return True
 
 
 backend = Backend()
