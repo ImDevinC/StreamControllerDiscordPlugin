@@ -65,7 +65,7 @@ class TogglePushToTalkAction(DiscordActionBase):
         super_rows = super().get_config_rows()
         self.action_model = Gtk.StringList()
         self.mode_row = Adw.ComboRow(
-            model=self.action_model, title=self.plugin_base.lm.get("actions.deafen.choice.title"))
+            model=self.action_model, title=self.plugin_base.lm.get("actions.ptt.choice.title"))
 
         index = 0
         found = 0
@@ -81,7 +81,7 @@ class TogglePushToTalkAction(DiscordActionBase):
         found = 0
         self.label_model = Gtk.StringList()
         self.label_row = Adw.ComboRow(
-            model=self.label_model, title=self.plugin_base.lm.get("actions.deafen.label_choice.title"))
+            model=self.label_model, title=self.plugin_base.lm.get("actions.ptt.label_choice.title"))
         for k in ['Top', 'Center', 'Bottom', 'None']:
             self.label_model.append(k)
             if self.label_location == k:

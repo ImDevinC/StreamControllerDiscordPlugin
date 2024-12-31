@@ -17,5 +17,7 @@
   "actions.changetextchannel.channel_id": "Channel ID",
   "actions.changetextchannel.update_channel": "Configure\nChannel",
   "actions.changevoicechannel.channel_id": "Channel ID",
-  "actions.changevoicechannel.update_channel": "Configure\nChannel"
+  "actions.changevoicechannel.update_channel": "Configure\nChannel",
+  "actions.ptt.choice.title": "Button Press Action",
+  "actions.ptt.label_choice.title": "Display Location"
 }
