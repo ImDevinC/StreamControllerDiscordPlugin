@@ -28,6 +28,7 @@ class ChangeVoiceChannelAction(DiscordActionBase):
             self.hide_error()
 
     def on_tick(self):
+        self.update_display({})
         if self.current_channel:
             self.set_label(self.current_channel)
         else:

@@ -36,6 +36,9 @@ class DeafenAction(DiscordActionBase):
             self.plugin_base.PATH, "assets", image), size=0.85)
 
     def on_tick(self):
+        # We need to do this to help make sure icons are set on
+        # page transition. I don't like it, but it works for now
+        self.update_display({'deaf': self.deafened})
         if self.deafened:
             self.set_label("Deafened", position=self.label_location.lower())
         else:

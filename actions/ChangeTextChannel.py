@@ -26,6 +26,7 @@ class ChangeTextChannel(DiscordActionBase):
             self.hide_error()
 
     def on_tick(self):
+        self.update_display({})
         if self.channel_id:
             self.set_label(self.channel_id)
         else:
