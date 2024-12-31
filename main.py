@@ -9,6 +9,7 @@ from .actions.MuteAction import MuteAction
 from .actions.DeafenAction import DeafenAction
 from .actions.ChangeVoiceChannelAction import ChangeVoiceChannelAction
 from .actions.ChangeTextChannel import ChangeTextChannel
+from .actions.TogglePushToTalkAction import TogglePushToTalkAction
 
 from loguru import logger as log
 
@@ -55,6 +56,14 @@ class PluginTemplate(PluginBase):
             action_name="Change Text Channel"
         )
         self.add_action_holder(self.change_text_channel_action)
+
+        self.message_ptt_action_holder = ActionHolder(
+            plugin_base=self,
+            action_base=TogglePushToTalkAction,
+            action_id="com_imdevinc_StreamControllerDiscordPlugin::Push_To_Talk",
+            action_name="Toggle push to talk"
+        )
+        self.add_action_holder(self.message_ptt_action_holder)
 
         self.register(
             plugin_name="Discord",
