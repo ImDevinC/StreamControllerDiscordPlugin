@@ -19,7 +19,11 @@ class ChangeTextChannel(DiscordActionBase):
             VOICE_CHANNEL_SELECT, self.update_display)
 
     def update_display(self, value: dict):
-        pass
+        if not self.plugin_base.backend:
+            self.show_error()
+            return
+        else:
+            self.hide_error()
 
     def on_tick(self):
         if self.channel_id:
