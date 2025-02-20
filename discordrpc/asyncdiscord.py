@@ -84,7 +84,7 @@ class AsyncDiscord:
         }, timeout=5)
         resp = token.json()
         if not 'access_token' in resp:
-            raise Exception('invalid oauth request')
+            raise Exception(f"invalid oauth request {resp}")
         return resp.get('access_token')
 
     def subscribe(self, event: str, args: dict = None):
