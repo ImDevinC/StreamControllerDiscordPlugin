@@ -34,7 +34,7 @@ You will also need to make sure that Discord has access to `/run/user/1000/` to 
 Configurable by allowing access to `xdg-run/discord:create`.
 
 If you are using the Flatpak version of StreamController, you will need to make sure StreamController has
-access to `/run/user/1000/discord-ipc-*` so it can access the IPC files.
+access to `/run/user/1000/discord-ipc-*` so it can access the IPC files. If it still doesn't work, try using `/run/user/1000/` instead.
 
 ## Troubleshooting
 This plugin uses sockets to communicate with Discord. Discord creates this socket as `$XDG_RUNTIME_DIR/discord-ipc-0`.
