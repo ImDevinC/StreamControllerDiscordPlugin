@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
+  "version": "1.1.0",
   "thumbnail": "store/thumbnail.png",
   "id": "com_imdevinc_StreamControllerDiscordPlugin",
   "name": "Discord",
@@ -8,8 +8,8 @@
   "tags": [
     "discord"
   ],
-  "minimum-app-version": "1.5.0-beta.6",
-  "app-version": "1.5.0-beta.6",
+  "minimum-app-version": "1.5.0-beta.8",
+  "app-version": "1.5.0-beta.8",
   "description": "Adds controls for Discord including mute, deafen, and change channel",
   "short-description": "Control Discord"
 }

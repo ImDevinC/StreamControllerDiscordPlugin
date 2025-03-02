@@ -1,15 +1,16 @@
 from gi.repository import Gtk, Adw
 
-from ..DiscordActionBase import DiscordActionBase
+from src.backend.PluginManager.ActionBase import ActionBase
 from ..discordrpc.commands import VOICE_CHANNEL_SELECT
 
 from loguru import logger as log
 
 
-class ChangeTextChannel(DiscordActionBase):
+class ChangeTextChannel(ActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channel_id: str = None
+        self.has_configuration = True
 
     def on_ready(self):
         self.load_config()
@@ -34,7 +35,6 @@ class ChangeTextChannel(DiscordActionBase):
                 "actions.changetextchannel.update_channel"))
 
     def load_config(self):
-        super().load_config()
         settings = self.get_settings()
         self.channel_id = settings.get('channel_id')
 

@@ -2,13 +2,13 @@ import os
 
 from gi.repository import Gtk, Adw
 
-from ..DiscordActionBase import DiscordActionBase
+from src.backend.PluginManager.ActionBase import ActionBase
 from ..discordrpc.commands import VOICE_SETTINGS_UPDATE
 
 from loguru import logger as log
 
 
-class TogglePushToTalkAction(DiscordActionBase):
+class TogglePushToTalkAction(ActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode: str = 'Toggle'
@@ -19,6 +19,7 @@ class TogglePushToTalkAction(DiscordActionBase):
             "PUSH_TO_TALK": True,
             "VOICE_ACTIVITY": False
         }
+        self.has_configuration = True
 
     def on_ready(self):
         self.load_config()
@@ -46,13 +47,13 @@ class TogglePushToTalkAction(DiscordActionBase):
         # page transition. I don't like it, but it works for now
         self.update_display({'mode': {"type": self.ptt_string}})
         if self.ptt:
-            self.set_label("Push to\ntalk", position=self.label_location.lower())
+            self.set_label("Push to\ntalk",
+                           position=self.label_location.lower())
         else:
             self.set_label(
                 "Voice\nActivity", position=self.label_location.lower())
 
     def load_config(self):
-        super().load_config()
         settings = self.get_settings()
         self.mode = settings.get('mode')
         if not self.mode:

@@ -2,13 +2,13 @@ import os
 
 from gi.repository import Gtk, Adw, Gio, GObject
 
-from ..DiscordActionBase import DiscordActionBase
+from src.backend.PluginManager.ActionBase import ActionBase
 from ..discordrpc.commands import VOICE_SETTINGS_UPDATE
 
 from loguru import logger as log
 
 
-class MuteAction(DiscordActionBase):
+class MuteAction(ActionBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode: str = 'Toggle'
@@ -45,7 +45,6 @@ class MuteAction(DiscordActionBase):
             self.set_label("Unmuted", position=self.label_location.lower())
 
     def load_config(self):
-        super().load_config()
         settings = self.get_settings()
         self.mode = settings.get('mode')
         if not self.mode:
