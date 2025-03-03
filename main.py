@@ -1,5 +1,6 @@
 import os
 import json
+import threading
 
 # Import StreamController modules
 from src.backend.PluginManager.PluginBase import PluginBase
@@ -124,10 +125,11 @@ class PluginTemplate(PluginBase):
         backend_path = os.path.join(self.PATH, 'backend.py')
         self.launch_backend(backend_path=backend_path,
                             open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
-        self.wait_for_backend(10)
 
-        self.backend.update_client_credentials(
-            client_id, client_secret, access_token, refresh_token)
+        threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
+                         client_id, client_secret, access_token, refresh_token]).start()
+        # self.backend.update_client_credentials(
+        #    client_id, client_secret, access_token, refresh_token)
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
 
