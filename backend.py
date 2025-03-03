@@ -9,7 +9,6 @@ from discordrpc import AsyncDiscord, commands
 
 class Backend(BackendBase):
     def __init__(self):
-        log.debug("init")
         super().__init__()
         self.client_id: str = None
         self.client_secret: str = None
