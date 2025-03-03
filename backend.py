@@ -13,6 +13,7 @@ class Backend(BackendBase):
         self.client_id: str = None
         self.client_secret: str = None
         self.access_token: str = None
+        self.refresh_token: str = None
         self.discord_client: AsyncDiscord = None
         self.callbacks: dict = {}
         self._is_authed: bool = False
@@ -25,13 +26,33 @@ class Backend(BackendBase):
         except Exception as ex:
             log.error(f"failed to parse discord event: {ex}")
             return
+        resp_code = event.get('data', {}).get('code', 0)
+        if resp_code in [4006, 4009]:
+            if not self.refresh_token:
+                self.setup_client()
+                return
+            try:
+                token_resp = self.discord_client.refresh(self.refresh_token)
+            except Exception as ex:
+                log.error(f"failed to refresh token {ex}")
+                self._update_tokens("", "")
+                self.setup_client()
+                return
+            access_token = token_resp.get("access_token")
+            refresh_token = token_resp.get("refresh_token")
+            self._update_tokens(access_token, refresh_token)
+            self.discord_client.authenticate(self.access_token)
+            return
         match event.get('cmd'):
             case commands.AUTHORIZE:
                 auth_code = event.get('data').get('code')
-                self.access_token = self.discord_client.get_access_token(
+                token_resp = self.discord_client.get_access_token(
                     auth_code)
+                self.access_token = token_resp.get("access_token")
+                self.refresh_token = token_resp.get("refresh_token")
                 self.discord_client.authenticate(self.access_token)
                 self.frontend.save_access_token(self.access_token)
+                self.frontend.save_refresh_token(self.refresh_token)
             case commands.AUTHENTICATE:
                 self.frontend.on_auth_callback(True)
                 self._is_authed = True
@@ -40,6 +61,12 @@ class Backend(BackendBase):
             case commands.DISPATCH:
                 evt = event.get('evt')
                 self.frontend.handle_callback(evt, event.get('data'))
+
+    def _update_tokens(self, access_token: str = "", refresh_token: str = ""):
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.frontend.save_access_token(access_token)
+        self.frontend.save_refresh_token(refresh_token)
 
     def setup_client(self):
         try:
@@ -54,7 +81,7 @@ class Backend(BackendBase):
             self.frontend.on_auth_callback(False, str(ex))
             log.error("failed to setup discord client: {0}", ex)
 
-    def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = ""):
+    def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = "", refresh_token: str = ""):
         if None in (client_id, client_secret) or "" in (client_id, client_secret):
             self.frontend.on_auth_callback(
                 False, "actions.base.credentials.missing_client_info")
@@ -62,6 +89,7 @@ class Backend(BackendBase):
         self.client_id = client_id
         self.client_secret = client_secret
         self.access_token = access_token
+        self.refresh_token = refresh_token
         self.setup_client()
 
     def is_authed(self) -> bool:
@@ -115,7 +143,7 @@ class Backend(BackendBase):
                 "failed to change text channel {0}. {1}", channel_id, ex)
             return False
         return True
-    
+
     def set_push_to_talk(self, ptt: str) -> bool:
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()

@@ -119,6 +119,7 @@ class PluginTemplate(PluginBase):
         client_id = settings.get('client_id', '')
         client_secret = settings.get('client_secret', '')
         access_token = settings.get('access_token', '')
+        refresh_token = settings.get('refresh_token', '')
 
         backend_path = os.path.join(self.PATH, 'backend.py')
         self.launch_backend(backend_path=backend_path,
@@ -126,13 +127,18 @@ class PluginTemplate(PluginBase):
         self.wait_for_backend(10)
 
         self.backend.update_client_credentials(
-            client_id, client_secret, access_token)
+            client_id, client_secret, access_token, refresh_token)
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
 
     def save_access_token(self, access_token: str):
         settings = self.get_settings()
         settings['access_token'] = access_token
+        self.set_settings(settings)
+
+    def save_refresh_token(self, refresh_token: str):
+        settings = self.get_settings()
+        settings['refresh_token'] = refresh_token
         self.set_settings(settings)
 
     def add_callback(self, key: str, callback: callable):

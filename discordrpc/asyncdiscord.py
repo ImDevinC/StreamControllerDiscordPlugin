@@ -75,6 +75,18 @@ class AsyncDiscord:
         }
         self._send_rpc_command(AUTHENTICATE, payload)
 
+    def refresh(self, code: str):
+        token = requests.post('https://discord.com/api/oauth2/token', {
+            'grant_type': 'refresh_token',
+            'refresh_token': code,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
+        }, timeout=5)
+        resp = token.json()
+        if not 'access_token' in resp:
+            raise Exception('refresh failed')
+        return resp
+
     def get_access_token(self, code: str):
         token = requests.post('https://discord.com/api/oauth2/token', {
             'grant_type': 'authorization_code',
@@ -85,7 +97,7 @@ class AsyncDiscord:
         resp = token.json()
         if not 'access_token' in resp:
             raise Exception('invalid oauth request')
-        return resp.get('access_token')
+        return resp
 
     def subscribe(self, event: str, args: dict = None):
         self.rpc.send({
