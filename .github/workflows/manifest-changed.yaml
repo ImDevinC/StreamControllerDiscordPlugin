@@ -1,0 +1,19 @@
+name: Verify manifest was updated
+
+on: pull_request
+
+jobs:
+  validate-manifest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Validate manifest was changed
+        run: |
+          git --no-pager diff main --name-only --exit-code manifest.json
+          if [ $? -eq 0 ]; then
+            echo "Manifest file not updated"
+            exit 1
+          fi
