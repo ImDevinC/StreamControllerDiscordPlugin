@@ -128,8 +128,6 @@ class PluginTemplate(PluginBase):
 
         threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
                          client_id, client_secret, access_token, refresh_token]).start()
-        # self.backend.update_client_credentials(
-        #    client_id, client_secret, access_token, refresh_token)
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
 
