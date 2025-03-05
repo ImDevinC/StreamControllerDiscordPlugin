@@ -12,7 +12,7 @@ jobs:
 
       - name: Validate manifest was changed
         run: |
-          git --no-pager diff main --name-only --exit-code manifest.json
+          git --no-pager diff origin/main --name-only --exit-code manifest.json
           if [ $? -eq 0 ]; then
             echo "Manifest file not updated"
             exit 1
