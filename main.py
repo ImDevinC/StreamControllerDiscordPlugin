@@ -65,8 +65,8 @@ class PluginTemplate(PluginBase):
         change_text = ActionHolder(
             plugin_base=self,
             action_base=ChangeTextChannel,
-            action_id_suffix="ChangeText",
             action_id="com_imdevinc_StreamControllerDiscordPlugin::ChangeTextChannel",
+            action_name="Change Text Channel",
             action_support={
                 Input.Key: ActionInputSupport.SUPPORTED,
                 Input.Dial: ActionInputSupport.UNTESTED,
