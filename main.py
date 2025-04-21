@@ -10,93 +10,28 @@ from src.backend.PluginManager.ActionInputSupport import ActionInputSupport
 
 # Import actions
 from .settings import PluginSettings
-from .actions.MuteAction import MuteAction
-from .actions.DeafenAction import DeafenAction
-from .actions.ChangeVoiceChannelAction import ChangeVoiceChannelAction
+from .actions.Mute import Mute
+from .actions.Deafen import Deafen
+from .actions.ChangeVoiceChannel import ChangeVoiceChannel
 from .actions.ChangeTextChannel import ChangeTextChannel
-from .actions.TogglePushToTalkAction import TogglePushToTalkAction
+from .actions.TogglePTT import TogglePTT
 
 from loguru import logger as log
 
 
 class PluginTemplate(PluginBase):
     def __init__(self):
-        super().__init__()
-
+        super().__init__(use_legacy_locale=False)
         self.callbacks = {}
-
         self.auth_callback_fn: callable = None
-
         self.lm = self.locale_manager
         self.lm.set_to_os_default()
-
         self._settings_manager = PluginSettings(self)
         self.has_plugin_settings = True
 
-        self.message_mute_action_holder = ActionHolder(
-            plugin_base=self,
-            action_base=MuteAction,
-            action_id="com_imdevinc_StreamControllerDiscordPlugin::Mute",
-            action_name="Mute",
-            action_support={
-                Input.Key: ActionInputSupport.SUPPORTED,
-                Input.Dial: ActionInputSupport.UNTESTED,
-                Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
-        )
-        self.add_action_holder(self.message_mute_action_holder)
-
-        self.message_deafen_action_holder = ActionHolder(
-            plugin_base=self,
-            action_base=DeafenAction,
-            action_id="com_imdevinc_StreamControllerDiscordPlugin::Deafen",
-            action_name="Deafen",
-            action_support={
-                Input.Key: ActionInputSupport.SUPPORTED,
-                Input.Dial: ActionInputSupport.UNTESTED,
-                Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
-        )
-        self.add_action_holder(self.message_deafen_action_holder)
-
-        self.change_voice_channel_action = ActionHolder(
-            plugin_base=self,
-            action_base=ChangeVoiceChannelAction,
-            action_id="com_imdevinc_StreamControllerDiscordPlugin::ChangeVoiceChannel",
-            action_name="Change Voice Channel",
-            action_support={
-                Input.Key: ActionInputSupport.SUPPORTED,
-                Input.Dial: ActionInputSupport.UNTESTED,
-                Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
-        )
-        self.add_action_holder(self.change_voice_channel_action)
-
-        self.change_text_channel_action = ActionHolder(
-            plugin_base=self,
-            action_base=ChangeTextChannel,
-            action_id="com_imdevinc_StreamControllerDiscordPlugin::ChangeTextChannel",
-            action_name="Change Text Channel",
-            action_support={
-                Input.Key: ActionInputSupport.SUPPORTED,
-                Input.Dial: ActionInputSupport.UNTESTED,
-                Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
-        )
-        self.add_action_holder(self.change_text_channel_action)
-
-        self.message_ptt_action_holder = ActionHolder(
-            plugin_base=self,
-            action_base=TogglePushToTalkAction,
-            action_id="com_imdevinc_StreamControllerDiscordPlugin::Push_To_Talk",
-            action_name="Toggle push to talk",
-            action_support={
-                Input.Key: ActionInputSupport.SUPPORTED,
-                Input.Dial: ActionInputSupport.UNTESTED,
-                Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
-        )
-        self.add_action_holder(self.message_ptt_action_holder)
+        self._add_icons()
+        self._setup_backend()
+        self._register_actions()
 
         try:
             with open(os.path.join(self.PATH, "manifest.json"), "r", encoding="UTF-8") as f:
@@ -116,6 +51,83 @@ class PluginTemplate(PluginBase):
             app_version=app_manifest.get("app_version")
         )
 
+        self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
+
+    def _add_icons(self):
+        self.add_icon("deafen", self.get_asset_path("deafen.png"))
+        self.add_icon("undeafen", self.get_asset_path("undeafen.png"))
+        self.add_icon("mute", self.get_asset_path("mute.png"))
+        self.add_icon("unmute", self.get_asset_path("unmute.png"))
+        self.add_icon("ptt", self.get_asset_path("ptt.png"))
+        self.add_icon("voice", self.get_asset_path("voice_act.png"))
+
+    def _register_actions(self):
+        change_text = ActionHolder(
+            plugin_base=self,
+            action_base=ChangeTextChannel,
+            action_id_suffix="ChangeText",
+            action_name="Change Text Channel",
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.UNTESTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED,
+            }
+        )
+        self.add_action_holder(change_text)
+
+        change_voice = ActionHolder(
+            plugin_base=self,
+            action_base=ChangeVoiceChannel,
+            action_id_suffix="ChangeVoice",
+            action_name="Change Voice Channel",
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.UNTESTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED,
+            }
+        )
+        self.add_action_holder(change_voice)
+
+        deafen = ActionHolder(
+            plugin_base=self,
+            action_base=Deafen,
+            action_id_suffix="Deafen",
+            action_name="Toggle Deafen",
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.UNTESTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED,
+            }
+        )
+        self.add_action_holder(deafen)
+
+        mute = ActionHolder(
+            plugin_base=self,
+            action_base=Mute,
+            action_id_suffix="Mute",
+            action_name="Toggle Mute",
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.UNTESTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED,
+            }
+        )
+        self.add_action_holder(mute)
+
+        toggle_ptt = ActionHolder(
+            plugin_base=self,
+            action_base=TogglePTT,
+            action_id_suffix="TogglePTT",
+            action_name="Toggle PTT",
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.UNTESTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED,
+            }
+        )
+        self.add_action_holder(toggle_ptt)
+
+    def _setup_backend(self):
         settings = self.get_settings()
         client_id = settings.get('client_id', '')
         client_secret = settings.get('client_secret', '')
@@ -125,11 +137,8 @@ class PluginTemplate(PluginBase):
         backend_path = os.path.join(self.PATH, 'backend.py')
         self.launch_backend(backend_path=backend_path,
                             open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
-
         threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
                          client_id, client_secret, access_token, refresh_token]).start()
-
-        self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
 
     def save_access_token(self, access_token: str):
         settings = self.get_settings()

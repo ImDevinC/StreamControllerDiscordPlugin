@@ -41,7 +41,11 @@ class AsyncDiscord:
         self.rpc.connect()
         self.rpc.send({'v': 1, 'client_id': self.client_id}, OP_HANDSHAKE)
         _, resp = self.rpc.receive()
-        data = json.loads(resp)
+        try:
+            data = json.loads(resp)
+        except Exception as ex:
+            log.error(f"invalid response. {ex}")
+            raise RPCException
         if data.get('code') == 4000:
             raise InvalidID
         if data.get('cmd') != 'DISPATCH' or data.get('evt') != 'READY':
@@ -56,6 +60,8 @@ class AsyncDiscord:
     def poll_callback(self, callback: callable):
         while self.polling:
             val = self.rpc.receive()
+            if val[0] == -1:
+                self.disconnect()
             callback(val[0], val[1])
 
     def authorize(self):
