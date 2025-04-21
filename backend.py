@@ -80,6 +80,9 @@ class Backend(BackendBase):
         except Exception as ex:
             self.frontend.on_auth_callback(False, str(ex))
             log.error("failed to setup discord client: {0}", ex)
+            if self.discord_client:
+                self.discord_client.disconnect()
+            self.discord_client = None
 
     def update_client_credentials(self, client_id: str, client_secret: str, access_token: str = "", refresh_token: str = ""):
         if None in (client_id, client_secret) or "" in (client_id, client_secret):
@@ -102,57 +105,30 @@ class Backend(BackendBase):
         if self._is_authed:
             self.discord_client.subscribe(key)
 
-    def set_mute(self, muted: bool) -> bool:
+    def set_mute(self, muted: bool):
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
-        try:
-            self.discord_client.set_voice_settings({'mute': muted})
-        except Exception as ex:
-            log.error("failed to set mute {0}", ex)
-            return False
-        return True
+        self.discord_client.set_voice_settings({'mute': muted})
 
-    def set_deafen(self, muted: bool) -> bool:
+    def set_deafen(self, muted: bool):
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
-        try:
-            self.discord_client.set_voice_settings({'deaf': muted})
-        except Exception as ex:
-            log.error("failed to set deaf {0}", ex)
-            return False
-        return True
+        self.discord_client.set_voice_settings({'deaf': muted})
 
     def change_voice_channel(self, channel_id: str = None) -> bool:
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
-        try:
-            self.discord_client.select_voice_channel(channel_id, True)
-        except Exception as ex:
-            log.error(
-                "failed to change voice channel {0}. {1}", channel_id, ex)
-            return False
-        return True
+        self.discord_client.select_voice_channel(channel_id, True)
 
     def change_text_channel(self, channel_id: str) -> bool:
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
-        try:
-            self.discord_client.select_text_channel(channel_id)
-        except Exception as ex:
-            log.error(
-                "failed to change text channel {0}. {1}", channel_id, ex)
-            return False
-        return True
+        self.discord_client.select_text_channel(channel_id)
 
     def set_push_to_talk(self, ptt: str) -> bool:
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
-        try:
-            self.discord_client.set_voice_settings({'mode': {"type": ptt}})
-        except Exception as ex:
-            log.error("failed to set push to talk {0}", ex)
-            return False
-        return True
+        self.discord_client.set_voice_settings({'mode': {"type": ptt}})
 
 
 backend = Backend()

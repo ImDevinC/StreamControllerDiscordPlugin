@@ -5,5 +5,5 @@ loguru==0.7.2
 plumbum==1.8.3
 requests==2.32.3
 rpyc==6.0.0
-streamcontroller-plugin-tools==2.0.1
+streamcontroller-plugin-tools==2.0.2
 urllib3==2.2.2
