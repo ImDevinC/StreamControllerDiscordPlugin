@@ -56,7 +56,7 @@ class Mute(DiscordCore):
         else:
             self.hide_error()
         self._muted = value["mute"]
-        icon = Icons.MUTE if not self._muted else Icons.UNMUTE
+        icon = Icons.MUTE if self._muted else Icons.UNMUTE
         self.icon_name = Icons(icon)
         self.current_icon = self.get_icon(self.icon_name)
         self.display_icon()
