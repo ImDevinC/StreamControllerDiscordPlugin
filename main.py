@@ -28,10 +28,12 @@ class PluginTemplate(PluginBase):
         self.lm.set_to_os_default()
         self._settings_manager = PluginSettings(self)
         self.has_plugin_settings = True
-
+        self._mutex = threading.Lock()
         self._add_icons()
-        self._setup_backend()
         self._register_actions()
+        backend_path = os.path.join(self.PATH, 'backend.py')
+        self.launch_backend(backend_path=backend_path,
+                            open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
 
         try:
             with open(os.path.join(self.PATH, "manifest.json"), "r", encoding="UTF-8") as f:
@@ -127,18 +129,17 @@ class PluginTemplate(PluginBase):
         )
         self.add_action_holder(toggle_ptt)
 
-    def _setup_backend(self):
-        settings = self.get_settings()
-        client_id = settings.get('client_id', '')
-        client_secret = settings.get('client_secret', '')
-        access_token = settings.get('access_token', '')
-        refresh_token = settings.get('refresh_token', '')
-
-        backend_path = os.path.join(self.PATH, 'backend.py')
-        self.launch_backend(backend_path=backend_path,
-                            open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
-        threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
-                         client_id, client_secret, access_token, refresh_token]).start()
+    def setup_backend(self):
+        with self._mutex:
+            if self.backend and self.backend.is_authed():
+                return
+            settings = self.get_settings()
+            client_id = settings.get('client_id', '')
+            client_secret = settings.get('client_secret', '')
+            access_token = settings.get('access_token', '')
+            refresh_token = settings.get('refresh_token', '')
+            threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
+                client_id, client_secret, access_token, refresh_token]).start()
 
     def save_access_token(self, access_token: str):
         settings = self.get_settings()
