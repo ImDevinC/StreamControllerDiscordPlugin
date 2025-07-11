@@ -129,6 +129,11 @@ class Backend(BackendBase):
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
         self.discord_client.set_voice_settings({'mode': {"type": ptt}})
+    def leave_voice_channel(self):
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
+        self.discord_client.select_voice_channel(None, True)
+
 
 
 backend = Backend()
