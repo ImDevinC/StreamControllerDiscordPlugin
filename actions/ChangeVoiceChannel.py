@@ -43,8 +43,17 @@ class ChangeVoiceChannel(DiscordCore):
 
     def _on_change_channel(self, _):
         channel = self._channel_row.get_value()
-        try:
-            self.backend.change_voice_channel(channel)
-        except Exception as ex:
-            log.error(ex)
-            self.show_error(3)
+        if channel != "0":
+            try:
+                self.backend.change_voice_channel(channel)
+            except Exception as ex:
+                log.error(ex)
+                self.show_error(3)
+        #The channel ID is 0
+        else:
+            try:
+                self.backend.leave_voice_channel()
+            except Exception as ex:
+                log.error(ex)
+                self.show_error(3)
+            
