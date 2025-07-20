@@ -56,7 +56,7 @@ class Deafen(DiscordCore):
         else:
             self.hide_error()
         self._deafened = value["deaf"]
-        icon = Icons.DEAFEN if not self._deafened else Icons.UNDEAFEN
+        icon = Icons.DEAFEN if self._deafened else Icons.UNDEAFEN
         self.icon_name = Icons(icon)
         self.current_icon = self.get_icon(self.icon_name)
         self.display_icon()

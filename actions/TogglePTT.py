@@ -60,7 +60,7 @@ class TogglePTT(DiscordCore):
         else:
             self.hide_error()
         self._mode = value["mode"]["type"]
-        icon = Icons.VOICE if self._mode == ActivityMethod.PTT else Icons.PTT
+        icon = Icons.PTT if self._mode == ActivityMethod.PTT else Icons.VOICE
         self.icon_name = Icons(icon)
         self.current_icon = self.get_icon(self.icon_name)
         self.display_icon()
