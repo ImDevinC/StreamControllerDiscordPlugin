@@ -28,7 +28,6 @@ class PluginTemplate(PluginBase):
         self.lm.set_to_os_default()
         self._settings_manager = PluginSettings(self)
         self.has_plugin_settings = True
-        self._mutex = threading.Lock()
         self._add_icons()
         self._register_actions()
         backend_path = os.path.join(self.PATH, 'backend.py')
@@ -54,6 +53,7 @@ class PluginTemplate(PluginBase):
         )
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
+        self.setup_backend()
 
     def _add_icons(self):
         self.add_icon("deafen", self.get_asset_path("deafen.png"))
@@ -130,16 +130,15 @@ class PluginTemplate(PluginBase):
         self.add_action_holder(toggle_ptt)
 
     def setup_backend(self):
-        with self._mutex:
-            if self.backend and self.backend.is_authed():
-                return
-            settings = self.get_settings()
-            client_id = settings.get('client_id', '')
-            client_secret = settings.get('client_secret', '')
-            access_token = settings.get('access_token', '')
-            refresh_token = settings.get('refresh_token', '')
-            threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
-                client_id, client_secret, access_token, refresh_token]).start()
+        if self.backend and self.backend.is_authed():
+            return
+        settings = self.get_settings()
+        client_id = settings.get('client_id', '')
+        client_secret = settings.get('client_secret', '')
+        access_token = settings.get('access_token', '')
+        refresh_token = settings.get('refresh_token', '')
+        threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
+            client_id, client_secret, access_token, refresh_token]).start()
 
     def save_access_token(self, access_token: str):
         settings = self.get_settings()
