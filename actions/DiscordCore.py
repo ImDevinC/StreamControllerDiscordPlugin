@@ -31,7 +31,6 @@ class DiscordCore(ActionCore):
 
     def on_ready(self):
         super().on_ready()
-        self.plugin_base.setup_backend()
         self.display_icon()
         self.display_color()
 

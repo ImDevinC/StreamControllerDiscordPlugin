@@ -70,12 +70,16 @@ class Backend(BackendBase):
 
     def setup_client(self):
         try:
+            log.debug("new client")
             self.discord_client = AsyncDiscord(
                 self.client_id, self.client_secret)
+            log.debug("connect")
             self.discord_client.connect(self.discord_callback)
             if not self.access_token:
+                log.debug("authorize")
                 self.discord_client.authorize()
             else:
+                log.debug("authenticate")
                 self.discord_client.authenticate(self.access_token)
         except Exception as ex:
             self.frontend.on_auth_callback(False, str(ex))
