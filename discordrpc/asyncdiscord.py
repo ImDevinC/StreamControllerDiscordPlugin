@@ -19,6 +19,7 @@ OP_PONG = 4
 
 class AsyncDiscord:
     def __init__(self, client_id: str, client_secret: str, access_token: str = ""):
+        log.debug("AsyncDiscord instance created")
         self.rpc = UnixPipe()
         self.client_id = client_id
         self.client_secret = client_secret
@@ -26,6 +27,7 @@ class AsyncDiscord:
         self.polling = False
 
     def _send_rpc_command(self, command: str, args: dict = None):
+        log.debug(f"sending command: {command} with args: {args}")
         payload = {
             'cmd': command,
             'nonce': str(uuid.uuid4())
@@ -38,22 +40,29 @@ class AsyncDiscord:
         return self.polling
 
     def connect(self, callback: callable):
+        log.debug("connecting to discord rpc")
         self.rpc.connect()
+        log.debug("connected to discord rpc")
         self.rpc.send({'v': 1, 'client_id': self.client_id}, OP_HANDSHAKE)
+        log.debug("handshake sent")
         _, resp = self.rpc.receive()
+        log.debug(f"handshake response: {resp}")
         try:
             data = json.loads(resp)
         except Exception as ex:
             log.error(f"invalid response. {ex}")
-            raise RPCException
+            raise RPCException from ex
         if data.get('code') == 4000:
+            log.error("invalid client id")
             raise InvalidID
         if data.get('cmd') != 'DISPATCH' or data.get('evt') != 'READY':
+            log.error("invalid handshake response")
             raise RPCException
         self.polling = True
         threading.Thread(target=self.poll_callback, args=[callback]).start()
 
     def disconnect(self):
+        log.debug("disconnecting from discord rpc")
         self.polling = False
         self.rpc.disconnect()
 
