@@ -18,7 +18,9 @@ class UnixPipe:
         self.socket: socket.socket = None
 
     def connect(self):
+        log.debug("connecting to socket...")
         if self.socket is None:
+            log.debug("creating new socket...")
             self.socket = socket.socket(socket.AF_UNIX)
         self.socket.setblocking(False)
         base_path = path = os.environ.get('XDG_RUNTIME_DIR') or os.environ.get(
@@ -26,24 +28,29 @@ class UnixPipe:
         base_path = re.sub(r'\/$', '', path) + '/discord-ipc-{0}'
         for i in range(10):
             path = base_path.format(i)
+            log.debug(f"trying to connect to socket: {path}")
             try:
                 self.socket.connect(path)
+                log.debug(f"connected to socket: {path}")
                 break
             except FileNotFoundError:
-                pass
+                log.debug(f"socket not found: {path}, trying next socket.")
             except Exception as ex:
                 log.error(
                     f"failed to connect to socket {path}, trying next socket. {ex}")
                 # Skip all errors to try all sockets
-                pass
         else:
+            log.debug("failed to connect to any socket.")
             raise DiscordNotOpened
 
     def disconnect(self):
+        log.debug("disconnecting from socket...")
         if self.socket is None:
+            log.debug("socket is already disconnected.")
             return
         self.socket.shutdown(socket.SHUT_RDWR)
         self.socket.close()
+        log.debug("disconnected from socket.")
 
     def send(self, payload, op):
         payload = json.dumps(payload).encode('UTF-8')
