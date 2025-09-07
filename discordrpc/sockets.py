@@ -26,6 +26,8 @@ class UnixPipe:
             path = base_path.format(i)
             log.debug(f"trying to connect to socket: {path}")
             try:
+                os.stat(path)
+                log.dbeug(f"socket found: {path}, trying to connect...")
                 self.socket = socket.socket(socket.AF_UNIX)
                 self.socket.setblocking(False)
                 self.socket.connect(path)
