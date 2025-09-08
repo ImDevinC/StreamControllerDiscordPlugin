@@ -33,13 +33,12 @@ class UnixPipe:
                 self.socket.connect(path)
                 log.debug(f"connected to socket: {path}")
                 break
-            except FileNotFoundError:
-                log.debug(f"socket not found: {path}, trying next socket.")
-                self.socket.close()
+            except FileNotFoundError as ex:
+                log.debug(
+                    f"socket not found: {path}. {ex}, trying next socket.")
             except Exception as ex:
                 log.error(
                     f"failed to connect to socket {path}, trying next socket. {ex}")
-                self.socket.close()
         else:
             log.debug("failed to connect to any socket.")
             raise DiscordNotOpened
