@@ -38,9 +38,15 @@ class AsyncDiscord:
         return self.polling
 
     def connect(self, callback: callable):
-        self.rpc.connect()
-        self.rpc.send({'v': 1, 'client_id': self.client_id}, OP_HANDSHAKE)
-        _, resp = self.rpc.receive()
+        tries = 0
+        while tries < 5:
+            log.debug(f"Attempting to connect to socket, attempt {tries+1}/5")
+            self.rpc.connect()
+            self.rpc.send({'v': 1, 'client_id': self.client_id}, OP_HANDSHAKE)
+            _, resp = self.rpc.receive()
+            if resp:
+                break
+            tries += 1
         try:
             data = json.loads(resp)
         except Exception as ex:
@@ -59,7 +65,12 @@ class AsyncDiscord:
 
     def poll_callback(self, callback: callable):
         while self.polling:
-            val = self.rpc.receive()
+            try:
+                val = self.rpc.receive()
+            except Exception as ex:
+                log.error(f"error receiving data from socket. {ex}")
+                self.disconnect()
+                return
             if val[0] == -1:
                 self.disconnect()
             callback(val[0], val[1])
@@ -139,3 +150,6 @@ class AsyncDiscord:
             'channel_id': channel_id
         }
         self._send_rpc_command(SELECT_TEXT_CHANNEL, args)
+
+    def get_selected_voice_channel(self) -> str:
+        self._send_rpc_command(GET_SELECTED_VOICE_CHANNEL)

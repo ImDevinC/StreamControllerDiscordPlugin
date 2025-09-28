@@ -48,7 +48,10 @@ class UnixPipe:
     def send(self, payload, op):
         payload = json.dumps(payload).encode('UTF-8')
         payload = struct.pack('<ii', op, len(payload)) + payload
-        self.socket.send(payload)
+        size = 0
+        while size == 0 or size < len(payload):
+            res = self.socket.send(payload[size:])
+            size += res
 
     def receive(self) -> (int, str):
         ready = select.select([self.socket], [], [], 1)

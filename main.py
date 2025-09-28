@@ -62,6 +62,9 @@ class PluginTemplate(PluginBase):
         self.add_icon("unmute", self.get_asset_path("unmute.png"))
         self.add_icon("ptt", self.get_asset_path("ptt.png"))
         self.add_icon("voice", self.get_asset_path("voice_act.png"))
+        self.add_icon("voice-inactive",
+                      self.get_asset_path("voice-inactive.png"))
+        self.add_icon("voice-active", self.get_asset_path("voice-active.png"))
 
     def _register_actions(self):
         change_text = ActionHolder(

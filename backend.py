@@ -17,6 +17,7 @@ class Backend(BackendBase):
         self.discord_client: AsyncDiscord = None
         self.callbacks: dict = {}
         self._is_authed: bool = False
+        self._current_voice_channel: str = None
 
     def discord_callback(self, code, event):
         if code == 0:
@@ -26,7 +27,8 @@ class Backend(BackendBase):
         except Exception as ex:
             log.error(f"failed to parse discord event: {ex}")
             return
-        resp_code = event.get('data', {}).get('code', 0)
+        resp_code = event.get('data').get(
+            'code', 0) if event.get('data') is not None else 0
         if resp_code in [4006, 4009]:
             if not self.refresh_token:
                 self.setup_client()
@@ -58,9 +60,15 @@ class Backend(BackendBase):
                 self._is_authed = True
                 for k in self.callbacks:
                     self.discord_client.subscribe(k)
+                self._get_current_voice_channel()
             case commands.DISPATCH:
                 evt = event.get('evt')
                 self.frontend.handle_callback(evt, event.get('data'))
+            case commands.GET_SELECTED_VOICE_CHANNEL:
+                self._current_voice_channel = event.get('data').get(
+                    'channel_id') if event.get('data') else None
+                self.frontend.handle_callback(
+                    commands.VOICE_CHANNEL_SELECT, event.get('data'))
 
     def _update_tokens(self, access_token: str = "", refresh_token: str = ""):
         self.access_token = access_token
@@ -133,6 +141,15 @@ class Backend(BackendBase):
         if self.discord_client is None or not self.discord_client.is_connected():
             self.setup_client()
         self.discord_client.set_voice_settings({'mode': {"type": ptt}})
+
+    @property
+    def current_voice_channel(self):
+        return self._current_voice_channel
+
+    def _get_current_voice_channel(self):
+        if self.discord_client is None or not self.discord_client.is_connected():
+            self.setup_client()
+        self.discord_client.get_selected_voice_channel()
 
 
 backend = Backend()
