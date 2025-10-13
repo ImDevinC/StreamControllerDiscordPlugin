@@ -159,6 +159,9 @@ class PluginTemplate(PluginBase):
         self.callbacks[key] = callbacks
 
     def handle_callback(self, key: str, data: any):
+        if key not in self.callbacks:
+            log.warning(f"No callbacks registered for key: {key}")
+            return
         for callback in self.callbacks.get(key):
             callback(data)
 
