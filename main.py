@@ -2,11 +2,15 @@ import os
 import json
 import threading
 
+from loguru import logger as log
+from gi.repository import Gtk
+
 # Import StreamController modules
 from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
 from src.backend.DeckManagement.InputIdentifier import Input
 from src.backend.PluginManager.ActionInputSupport import ActionInputSupport
+from src.backend.DeckManagement.ImageHelpers import image2pixbuf
 
 # Import actions
 from .settings import PluginSettings
@@ -16,10 +20,12 @@ from .actions.ChangeVoiceChannel import ChangeVoiceChannel
 from .actions.ChangeTextChannel import ChangeTextChannel
 from .actions.TogglePTT import TogglePTT
 
-from loguru import logger as log
-
 
 class PluginTemplate(PluginBase):
+    def get_selector_icon(self) -> Gtk.Widget:
+        _, rendered = self.asset_manager.icons.get_asset_values("main")
+        return Gtk.Image.new_from_pixbuf(image2pixbuf(rendered))
+
     def __init__(self):
         super().__init__(use_legacy_locale=False)
         self.callbacks = {}
@@ -56,6 +62,8 @@ class PluginTemplate(PluginBase):
         self.setup_backend()
 
     def _add_icons(self):
+        self.add_icon("main", self.get_asset_path(
+            "Discord-Symbol-Blurple.png"))
         self.add_icon("deafen", self.get_asset_path("deafen.png"))
         self.add_icon("undeafen", self.get_asset_path("undeafen.png"))
         self.add_icon("mute", self.get_asset_path("mute.png"))
