@@ -42,9 +42,41 @@ class Mute(DiscordCore):
             )
         )
 
+        self.event_manager.add_event_assigner(
+            EventAssigner(
+                id="enable-mute",
+                ui_label="enable-mute",
+                default_event=None,
+                callback=self._on_mute
+            )
+        )
+
+        self.event_manager.add_event_assigner(
+            EventAssigner(
+                id="disable-mute",
+                ui_label="disable-mute",
+                default_event=None,
+                callback=self._off_mute
+            )
+        )
+
     def _on_toggle(self, _):
         try:
             self.backend.set_mute(not self._muted)
+        except Exception as ex:
+            log.error(ex)
+            self.show_error(3)
+
+    def _on_mute(self, _):
+        try:
+            self.backend.set_mute(True)
+        except Exception as ex:
+            log.error(ex)
+            self.show_error(3)
+
+    def _off_mute(self, _):
+        try:
+            self.backend.set_mute(False)
         except Exception as ex:
             log.error(ex)
             self.show_error(3)
