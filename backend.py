@@ -152,8 +152,6 @@ class Backend(BackendBase):
         self.discord_client.get_selected_voice_channel()
 
     def close(self):
-        """Cleanup method called when backend is shutting down"""
-        log.debug("Closing Discord backend connection")
         if self.discord_client:
             try:
                 self.discord_client.disconnect()
