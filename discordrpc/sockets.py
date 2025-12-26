@@ -42,8 +42,15 @@ class UnixPipe:
     def disconnect(self):
         if self.socket is None:
             return
-        self.socket.shutdown(socket.SHUT_RDWR)
-        self.socket.close()
+        try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+        except Exception:
+            pass  # Socket might already be disconnected
+        try:
+            self.socket.close()
+        except Exception:
+            pass
+        self.socket = None  # Reset so connect() creates a fresh socket
 
     def send(self, payload, op):
         payload = json.dumps(payload).encode('UTF-8')
