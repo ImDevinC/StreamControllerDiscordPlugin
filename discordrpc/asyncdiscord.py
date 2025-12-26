@@ -42,8 +42,11 @@ class AsyncDiscord:
         while tries < 5:
             log.debug(f"Attempting to connect to socket, attempt {tries+1}/5")
             self.rpc.connect()
+            log.debug("connected")
             self.rpc.send({'v': 1, 'client_id': self.client_id}, OP_HANDSHAKE)
+            log.debug("command sent, waitig for response")
             _, resp = self.rpc.receive()
+            log.debug("got response")
             if resp:
                 break
             tries += 1
@@ -56,6 +59,7 @@ class AsyncDiscord:
             raise InvalidID
         if data.get('cmd') != 'DISPATCH' or data.get('evt') != 'READY':
             raise RPCException
+        log.debug("received data, starting poll thread")
         self.polling = True
         threading.Thread(target=self.poll_callback, args=[callback]).start()
 

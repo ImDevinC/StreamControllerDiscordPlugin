@@ -30,6 +30,7 @@ class UnixPipe:
                 self.socket.connect(path)
                 break
             except FileNotFoundError:
+                log.error(f"file not found: {path}")
                 pass
             except Exception as ex:
                 log.error(
