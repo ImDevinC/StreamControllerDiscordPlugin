@@ -25,6 +25,7 @@ class AsyncDiscord:
         self.client_secret = client_secret
         self.access_token = access_token
         self.polling = False
+        self._session = requests.Session()  # Reuse HTTP connections
 
     def _send_rpc_command(self, command: str, args: dict = None):
         payload = {"cmd": command, "nonce": str(uuid.uuid4())}
@@ -62,6 +63,8 @@ class AsyncDiscord:
     def disconnect(self):
         self.polling = False
         self.rpc.disconnect()
+        if self._session:
+            self._session.close()
 
     def poll_callback(self, callback: callable):
         while self.polling:
@@ -88,7 +91,7 @@ class AsyncDiscord:
         self._send_rpc_command(AUTHENTICATE, payload)
 
     def refresh(self, code: str):
-        token = requests.post(
+        token = self._session.post(
             "https://discord.com/api/oauth2/token",
             {
                 "grant_type": "refresh_token",
@@ -104,7 +107,7 @@ class AsyncDiscord:
         return resp
 
     def get_access_token(self, code: str):
-        token = requests.post(
+        token = self._session.post(
             "https://discord.com/api/oauth2/token",
             {
                 "grant_type": "authorization_code",
