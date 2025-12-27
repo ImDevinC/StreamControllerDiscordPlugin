@@ -29,7 +29,8 @@ class Backend(BackendBase):
             log.error(f"failed to parse discord event: {ex}")
             return
         resp_code = (
-            event.get("data").get("code", 0) if event.get("data") is not None else 0
+            event.get("data").get("code", 0) if event.get(
+                "data") is not None else 0
         )
         if resp_code in [4006, 4009]:
             if not self.refresh_token:
@@ -67,7 +68,8 @@ class Backend(BackendBase):
                 self.frontend.handle_callback(evt, event.get("data"))
             case commands.GET_SELECTED_VOICE_CHANNEL:
                 self._current_voice_channel = (
-                    event.get("data").get("channel_id") if event.get("data") else None
+                    event.get("data").get(
+                        "channel_id") if event.get("data") else None
                 )
                 self.frontend.handle_callback(
                     commands.VOICE_CHANNEL_SELECT, event.get("data")
@@ -86,7 +88,8 @@ class Backend(BackendBase):
         try:
             self._is_reconnecting = True
             log.debug("new client")
-            self.discord_client = AsyncDiscord(self.client_id, self.client_secret)
+            self.discord_client = AsyncDiscord(
+                self.client_id, self.client_secret)
             log.debug("connect")
             self.discord_client.connect(self.discord_callback)
             if not self.access_token:
@@ -154,21 +157,24 @@ class Backend(BackendBase):
 
     def change_voice_channel(self, channel_id: str = None) -> bool:
         if not self._ensure_connected():
-            log.warning("Discord client not connected, cannot change voice channel")
+            log.warning(
+                "Discord client not connected, cannot change voice channel")
             return False
         self.discord_client.select_voice_channel(channel_id, True)
         return True
 
     def change_text_channel(self, channel_id: str) -> bool:
         if not self._ensure_connected():
-            log.warning("Discord client not connected, cannot change text channel")
+            log.warning(
+                "Discord client not connected, cannot change text channel")
             return False
         self.discord_client.select_text_channel(channel_id)
         return True
 
     def set_push_to_talk(self, ptt: str) -> bool:
         if not self._ensure_connected():
-            log.warning("Discord client not connected, cannot set push to talk")
+            log.warning(
+                "Discord client not connected, cannot set push to talk")
             return False
         self.discord_client.set_voice_settings({"mode": {"type": ptt}})
         return True
