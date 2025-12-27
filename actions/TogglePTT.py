@@ -30,8 +30,7 @@ class TogglePTT(DiscordCore):
 
     def on_ready(self):
         super().on_ready()
-        self.backend.register_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
+        self.register_backend_callback(VOICE_SETTINGS_UPDATE, self._update_display)
 
     def create_event_assigners(self):
         self.event_manager.add_event_assigner(

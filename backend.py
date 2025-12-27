@@ -134,6 +134,17 @@ class Backend(BackendBase):
         if self._is_authed:
             self.discord_client.subscribe(key)
 
+    def unregister_callback(self, key: str, callback: callable):
+        """Remove a callback from the callback list."""
+        callbacks = self.callbacks.get(key, [])
+        if callback in callbacks:
+            callbacks.remove(callback)
+            if callbacks:
+                self.callbacks[key] = callbacks
+            else:
+                # Remove key entirely if no callbacks remain
+                del self.callbacks[key]
+
     def _ensure_connected(self) -> bool:
         """Ensure client is connected, trigger reconnection if needed."""
         if self.discord_client is None or not self.discord_client.is_connected():

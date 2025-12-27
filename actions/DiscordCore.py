@@ -23,6 +23,9 @@ class DiscordCore(ActionCore):
         self.color_name: str = ""
         self.backend: "Backend" = self.plugin_base.backend
 
+        # Track registered callbacks for cleanup
+        self._registered_callbacks: list[tuple[str, callable]] = []
+
         self.plugin_base.asset_manager.icons.add_listener(self._icon_changed)
         self.plugin_base.asset_manager.colors.add_listener(self._color_changed)
 
@@ -39,6 +42,25 @@ class DiscordCore(ActionCore):
 
     def create_event_assigners(self):
         pass
+
+    def register_backend_callback(self, key: str, callback: callable):
+        """Register a callback and track it for cleanup."""
+        self.backend.register_callback(key, callback)
+        self._registered_callbacks.append((key, callback))
+
+    def cleanup_callbacks(self):
+        """Unregister all tracked callbacks to prevent memory leaks."""
+        for key, callback in self._registered_callbacks:
+            self.backend.unregister_callback(key, callback)
+        self._registered_callbacks.clear()
+
+    def __del__(self):
+        """Clean up callbacks when action is destroyed."""
+        try:
+            self.cleanup_callbacks()
+        except (AttributeError, RuntimeError):
+            # Object may be partially initialized or backend already destroyed
+            pass
 
     def display_icon(self):
         if not self.current_icon:
