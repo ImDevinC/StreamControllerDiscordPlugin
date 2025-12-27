@@ -30,10 +30,7 @@ class TogglePTT(DiscordCore):
 
     def on_ready(self):
         super().on_ready()
-        self.plugin_base.add_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
-        self.backend.register_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
+        self.backend.register_callback(VOICE_SETTINGS_UPDATE, self._update_display)
 
     def create_event_assigners(self):
         self.event_manager.add_event_assigner(
@@ -41,12 +38,14 @@ class TogglePTT(DiscordCore):
                 id="toggle-ptt",
                 ui_label="toggle-ptt",
                 default_event=Input.Key.Events.DOWN,
-                callback=self._on_toggle
+                callback=self._on_toggle,
             )
         )
 
     def _on_toggle(self, _):
-        new = ActivityMethod.PTT if self._mode == ActivityMethod.VA else ActivityMethod.VA
+        new = (
+            ActivityMethod.PTT if self._mode == ActivityMethod.VA else ActivityMethod.VA
+        )
         try:
             self.backend.set_push_to_talk(str(new))
         except Exception as ex:
