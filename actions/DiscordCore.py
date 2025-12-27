@@ -21,7 +21,10 @@ class DiscordCore(ActionCore):
         self.current_color: Color = None
         self.icon_name: str = ""
         self.color_name: str = ""
-        self.backend: 'Backend' = self.plugin_base.backend
+        self.backend: "Backend" = self.plugin_base.backend
+
+        # Track registered callbacks for cleanup
+        self._registered_callbacks: list[tuple[str, callable]] = []
 
         self.plugin_base.asset_manager.icons.add_listener(self._icon_changed)
         self.plugin_base.asset_manager.colors.add_listener(self._color_changed)
@@ -40,6 +43,25 @@ class DiscordCore(ActionCore):
     def create_event_assigners(self):
         pass
 
+    def register_backend_callback(self, key: str, callback: callable):
+        """Register a callback and track it for cleanup."""
+        self.backend.register_callback(key, callback)
+        self._registered_callbacks.append((key, callback))
+
+    def cleanup_callbacks(self):
+        """Unregister all tracked callbacks to prevent memory leaks."""
+        for key, callback in self._registered_callbacks:
+            self.backend.unregister_callback(key, callback)
+        self._registered_callbacks.clear()
+
+    def __del__(self):
+        """Clean up callbacks when action is destroyed."""
+        try:
+            self.cleanup_callbacks()
+        except (AttributeError, RuntimeError):
+            # Object may be partially initialized or backend already destroyed
+            pass
+
     def display_icon(self):
         if not self.current_icon:
             return
@@ -47,7 +69,7 @@ class DiscordCore(ActionCore):
         if rendered:
             self.set_media(image=rendered)
 
-    async def _icon_changed(self, event: str, key: str, asset: Icon):
+    def _icon_changed(self, event: str, key: str, asset: Icon):
         if not key in self.icon_keys:
             return
         if key != self.icon_name:
@@ -62,12 +84,14 @@ class DiscordCore(ActionCore):
         color = self.current_color.get_values()
         try:
             self.set_background_color(color)
-        except:
+        except (RuntimeError, AttributeError) as ex:
             # Sometimes we try to call this too early, and it leads to
             # console errors, but no real impact. Ignoring this for now
-            pass
+            log.debug(
+                f"Failed to set background color (action may not be ready yet): {ex}"
+            )
 
-    async def _color_changed(self, event: str, key: str, asset: Color):
+    def _color_changed(self, event: str, key: str, asset: Color):
         if not key in self.color_keys:
             return
         if key != self.color_name:

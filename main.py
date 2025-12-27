@@ -1,6 +1,6 @@
 import os
 import json
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from loguru import logger as log
 from gi.repository import Gtk
@@ -34,44 +34,50 @@ class PluginTemplate(PluginBase):
         self.lm.set_to_os_default()
         self._settings_manager = PluginSettings(self)
         self.has_plugin_settings = True
+        self._thread_pool = ThreadPoolExecutor(
+            max_workers=4, thread_name_prefix="discord-"
+        )
         self._add_icons()
         self._register_actions()
-        backend_path = os.path.join(self.PATH, 'backend.py')
-        self.launch_backend(backend_path=backend_path,
-                            open_in_terminal=False, venv_path=os.path.join(self.PATH, '.venv'))
+        backend_path = os.path.join(self.PATH, "backend.py")
+        self.launch_backend(
+            backend_path=backend_path,
+            open_in_terminal=False,
+            venv_path=os.path.join(self.PATH, ".venv"),
+        )
 
         try:
-            with open(os.path.join(self.PATH, "manifest.json"), "r", encoding="UTF-8") as f:
+            with open(
+                os.path.join(self.PATH, "manifest.json"), "r", encoding="UTF-8"
+            ) as f:
                 data = json.load(f)
         except Exception as ex:
             log.error(ex)
             data = {}
         app_manifest = {
             "plugin_version": data.get("version", "0.0.0"),
-            "app_version": data.get("app-version", "0.0.0")
+            "app_version": data.get("app-version", "0.0.0"),
         }
 
         self.register(
             plugin_name="Discord",
             github_repo="https://github.com/imdevinc/StreamControllerDiscordPlugin",
             plugin_version=app_manifest.get("plugin_version"),
-            app_version=app_manifest.get("app_version")
+            app_version=app_manifest.get("app_version"),
         )
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
         self.setup_backend()
 
     def _add_icons(self):
-        self.add_icon("main", self.get_asset_path(
-            "Discord-Symbol-Blurple.png"))
+        self.add_icon("main", self.get_asset_path("Discord-Symbol-Blurple.png"))
         self.add_icon("deafen", self.get_asset_path("deafen.png"))
         self.add_icon("undeafen", self.get_asset_path("undeafen.png"))
         self.add_icon("mute", self.get_asset_path("mute.png"))
         self.add_icon("unmute", self.get_asset_path("unmute.png"))
         self.add_icon("ptt", self.get_asset_path("ptt.png"))
         self.add_icon("voice", self.get_asset_path("voice_act.png"))
-        self.add_icon("voice-inactive",
-                      self.get_asset_path("voice-inactive.png"))
+        self.add_icon("voice-inactive", self.get_asset_path("voice-inactive.png"))
         self.add_icon("voice-active", self.get_asset_path("voice-active.png"))
 
     def _register_actions(self):
@@ -84,7 +90,7 @@ class PluginTemplate(PluginBase):
                 Input.Key: ActionInputSupport.SUPPORTED,
                 Input.Dial: ActionInputSupport.UNTESTED,
                 Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
+            },
         )
         self.add_action_holder(change_text)
 
@@ -97,7 +103,7 @@ class PluginTemplate(PluginBase):
                 Input.Key: ActionInputSupport.SUPPORTED,
                 Input.Dial: ActionInputSupport.UNTESTED,
                 Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
+            },
         )
         self.add_action_holder(change_voice)
 
@@ -110,7 +116,7 @@ class PluginTemplate(PluginBase):
                 Input.Key: ActionInputSupport.SUPPORTED,
                 Input.Dial: ActionInputSupport.UNTESTED,
                 Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
+            },
         )
         self.add_action_holder(deafen)
 
@@ -123,7 +129,7 @@ class PluginTemplate(PluginBase):
                 Input.Key: ActionInputSupport.SUPPORTED,
                 Input.Dial: ActionInputSupport.UNTESTED,
                 Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
+            },
         )
         self.add_action_holder(mute)
 
@@ -136,7 +142,7 @@ class PluginTemplate(PluginBase):
                 Input.Key: ActionInputSupport.SUPPORTED,
                 Input.Dial: ActionInputSupport.UNTESTED,
                 Input.Touchscreen: ActionInputSupport.UNTESTED,
-            }
+            },
         )
         self.add_action_holder(toggle_ptt)
 
@@ -144,21 +150,26 @@ class PluginTemplate(PluginBase):
         if self.backend and self.backend.is_authed():
             return
         settings = self.get_settings()
-        client_id = settings.get('client_id', '')
-        client_secret = settings.get('client_secret', '')
-        access_token = settings.get('access_token', '')
-        refresh_token = settings.get('refresh_token', '')
-        threading.Thread(target=self.backend.update_client_credentials, daemon=True, args=[
-            client_id, client_secret, access_token, refresh_token]).start()
+        client_id = settings.get("client_id", "")
+        client_secret = settings.get("client_secret", "")
+        access_token = settings.get("access_token", "")
+        refresh_token = settings.get("refresh_token", "")
+        self._thread_pool.submit(
+            self.backend.update_client_credentials,
+            client_id,
+            client_secret,
+            access_token,
+            refresh_token,
+        )
 
     def save_access_token(self, access_token: str):
         settings = self.get_settings()
-        settings['access_token'] = access_token
+        settings["access_token"] = access_token
         self.set_settings(settings)
 
     def save_refresh_token(self, refresh_token: str):
         settings = self.get_settings()
-        settings['refresh_token'] = refresh_token
+        settings["refresh_token"] = refresh_token
         self.set_settings(settings)
 
     def add_callback(self, key: str, callback: callable):
