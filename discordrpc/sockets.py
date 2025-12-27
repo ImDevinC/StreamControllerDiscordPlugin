@@ -8,6 +8,7 @@ import select
 from loguru import logger as log
 
 from .exceptions import DiscordNotOpened
+from .constants import MAX_IPC_SOCKET_RANGE, SOCKET_SELECT_TIMEOUT, SOCKET_BUFFER_SIZE
 
 SOCKET_DISCONNECTED: int = -1
 
@@ -28,7 +29,7 @@ class UnixPipe:
             or "/tmp"
         )
         base_path = re.sub(r"\/$", "", path) + "/discord-ipc-{0}"
-        for i in range(10):
+        for i in range(MAX_IPC_SOCKET_RANGE):
             path = base_path.format(i)
             try:
                 self.socket.connect(path)
@@ -67,10 +68,10 @@ class UnixPipe:
             size += res
 
     def receive(self) -> (int, str):
-        ready = select.select([self.socket], [], [], 1)
+        ready = select.select([self.socket], [], [], SOCKET_SELECT_TIMEOUT)
         if not ready[0]:
             return 0, {}
-        data = self.socket.recv(1024)
+        data = self.socket.recv(SOCKET_BUFFER_SIZE)
         if len(data) == 0:
             return SOCKET_DISCONNECTED, {}
         header = data[:8]
