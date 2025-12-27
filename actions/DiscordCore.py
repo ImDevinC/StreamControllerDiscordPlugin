@@ -47,7 +47,7 @@ class DiscordCore(ActionCore):
         if rendered:
             self.set_media(image=rendered)
 
-    async def _icon_changed(self, event: str, key: str, asset: Icon):
+    def _icon_changed(self, event: str, key: str, asset: Icon):
         if not key in self.icon_keys:
             return
         if key != self.icon_name:
@@ -69,7 +69,7 @@ class DiscordCore(ActionCore):
                 f"Failed to set background color (action may not be ready yet): {ex}"
             )
 
-    async def _color_changed(self, event: str, key: str, asset: Color):
+    def _color_changed(self, event: str, key: str, asset: Color):
         if not key in self.color_keys:
             return
         if key != self.color_name:
