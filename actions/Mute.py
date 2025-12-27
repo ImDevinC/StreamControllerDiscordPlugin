@@ -27,10 +27,9 @@ class Mute(DiscordCore):
 
     def on_ready(self):
         super().on_ready()
-        self.plugin_base.add_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
-        self.backend.register_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
+        # Only register callback on backend side to avoid duplication
+        # Frontend will relay events from backend
+        self.backend.register_callback(VOICE_SETTINGS_UPDATE, self._update_display)
 
     def create_event_assigners(self):
         self.event_manager.add_event_assigner(
@@ -38,7 +37,7 @@ class Mute(DiscordCore):
                 id="toggle-mute",
                 ui_label="toggle-mute",
                 default_event=Input.Key.Events.DOWN,
-                callback=self._on_toggle
+                callback=self._on_toggle,
             )
         )
 
@@ -47,7 +46,7 @@ class Mute(DiscordCore):
                 id="enable-mute",
                 ui_label="enable-mute",
                 default_event=None,
-                callback=self._on_mute
+                callback=self._on_mute,
             )
         )
 
@@ -56,7 +55,7 @@ class Mute(DiscordCore):
                 id="disable-mute",
                 ui_label="disable-mute",
                 default_event=None,
-                callback=self._off_mute
+                callback=self._off_mute,
             )
         )
 

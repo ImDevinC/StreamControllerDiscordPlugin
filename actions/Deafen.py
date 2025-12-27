@@ -27,10 +27,9 @@ class Deafen(DiscordCore):
 
     def on_ready(self):
         super().on_ready()
-        self.plugin_base.add_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
-        self.backend.register_callback(
-            VOICE_SETTINGS_UPDATE, self._update_display)
+        # Only register callback on backend side to avoid duplication
+        # Frontend will relay events from backend
+        self.backend.register_callback(VOICE_SETTINGS_UPDATE, self._update_display)
 
     def create_event_assigners(self):
         self.event_manager.add_event_assigner(
@@ -38,7 +37,7 @@ class Deafen(DiscordCore):
                 id="toggle-deafen",
                 ui_label="toggle-deafen",
                 default_event=Input.Key.Events.DOWN,
-                callback=self._on_toggle
+                callback=self._on_toggle,
             )
         )
 
