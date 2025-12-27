@@ -21,7 +21,7 @@ class DiscordCore(ActionCore):
         self.current_color: Color = None
         self.icon_name: str = ""
         self.color_name: str = ""
-        self.backend: 'Backend' = self.plugin_base.backend
+        self.backend: "Backend" = self.plugin_base.backend
 
         self.plugin_base.asset_manager.icons.add_listener(self._icon_changed)
         self.plugin_base.asset_manager.colors.add_listener(self._color_changed)
@@ -62,10 +62,12 @@ class DiscordCore(ActionCore):
         color = self.current_color.get_values()
         try:
             self.set_background_color(color)
-        except:
+        except (RuntimeError, AttributeError) as ex:
             # Sometimes we try to call this too early, and it leads to
             # console errors, but no real impact. Ignoring this for now
-            pass
+            log.debug(
+                f"Failed to set background color (action may not be ready yet): {ex}"
+            )
 
     async def _color_changed(self, event: str, key: str, asset: Color):
         if not key in self.color_keys:
