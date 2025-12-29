@@ -21,26 +21,25 @@ class ChangeVoiceChannel(DiscordCore):
         super().__init__(*args, **kwargs)
         self.has_configuration = True
         self._current_channel: str = ""
-        self.icon_keys = [Icons.VOICE_CHANNEL_ACTIVE,
-                          Icons.VOICE_CHANNEL_INACTIVE]
+        self.icon_keys = [Icons.VOICE_CHANNEL_ACTIVE, Icons.VOICE_CHANNEL_INACTIVE]
         self.current_icon = self.get_icon(Icons.VOICE_CHANNEL_INACTIVE)
         self.icon_name = Icons.VOICE_CHANNEL_INACTIVE
 
     def on_ready(self):
         super().on_ready()
-        self.plugin_base.add_callback(
-            VOICE_CHANNEL_SELECT, self._update_display)
-        self.backend.register_callback(
-            VOICE_CHANNEL_SELECT, self._update_display)
+        self.register_backend_callback(VOICE_CHANNEL_SELECT, self._update_display)
 
     def _update_display(self, value: dict):
         if not self.backend:
             self.show_error()
             return
         self.hide_error()
-        self._current_channel = value.get(
-            "channel_id", None) if value else None
-        self.icon_name = Icons.VOICE_CHANNEL_INACTIVE if self._current_channel is None else Icons.VOICE_CHANNEL_ACTIVE
+        self._current_channel = value.get("channel_id", None) if value else None
+        self.icon_name = (
+            Icons.VOICE_CHANNEL_INACTIVE
+            if self._current_channel is None
+            else Icons.VOICE_CHANNEL_ACTIVE
+        )
         self.current_icon = self.get_icon(self.icon_name)
         self.display_icon()
 
@@ -63,7 +62,7 @@ class ChangeVoiceChannel(DiscordCore):
                 id="change-channel",
                 ui_label="change-channel",
                 default_event=Input.Key.Events.DOWN,
-                callback=self._on_change_channel
+                callback=self._on_change_channel,
             )
         )
 
