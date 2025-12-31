@@ -171,3 +171,22 @@ class AsyncDiscord:
 
     def get_selected_voice_channel(self) -> str:
         self._send_rpc_command(GET_SELECTED_VOICE_CHANNEL)
+
+    def set_user_voice_settings(self, user_id: str, volume: int = None, mute: bool = None):
+        """Set voice settings for a specific user in the current voice channel.
+
+        Args:
+            user_id: The user's Discord ID (string)
+            volume: Volume level 0-200 (100 = normal, 200 = 200%)
+            mute: Whether to locally mute the user
+        """
+        args = {"user_id": user_id}
+        if volume is not None:
+            args["volume"] = max(0, min(200, volume))
+        if mute is not None:
+            args["mute"] = mute
+        self._send_rpc_command(SET_USER_VOICE_SETTINGS, args)
+
+    def get_channel(self, channel_id: str):
+        """Get channel information including voice states for voice channels."""
+        self._send_rpc_command(GET_CHANNEL, {"channel_id": channel_id})
