@@ -14,7 +14,7 @@ SOCKET_DISCONNECTED: int = -1
 SOCKET_BAD_BUFFER_SIZE: int = -2
 SOCKET_SEND_TIMEOUT: int = 5
 SOCKET_CONNECT_TIMEOUT: int = 2
-SOCKET_RECEIVE_TIMEOUT: int = 5
+SOCKET_RECEIVE_TIMEOUT: int = 10
 
 class UnixPipe:
     def __init__(self):
@@ -64,7 +64,6 @@ class UnixPipe:
         self.socket = None  # Reset so connect() creates a fresh socket
 
     def send(self, payload, op):
-        log.debug(f"Sending payload: {payload} with op: {op}")
         payload_bytes = json.dumps(payload).encode("UTF-8")
         header = struct.pack("<ii", op, len(payload_bytes))
         message = header + payload_bytes
@@ -72,17 +71,16 @@ class UnixPipe:
         self.socket.sendall(message)
 
     def receive(self) -> (int, str):
-        self.socket.settimeout(SOCKET_RECEIVE_TIMEOUT)
         data = self.socket.recv(SOCKET_BUFFER_SIZE)
         if len(data) == 0:
             return SOCKET_DISCONNECTED, {}
         header = data[:8]
         code = int.from_bytes(header[:4], "little")
         length = int.from_bytes(header[4:], "little")
-        all_data = data[8:]
-        buffer_size = length - len(all_data)
-        if buffer_size < 0:
+        all_data = b""
+        if length < 0:
             return SOCKET_BAD_BUFFER_SIZE, {}
-        data = self.socket.recv(length - len(all_data))
-        all_data += data
+        if length > 0:
+            data = self.socket.recv(length)
+            all_data += data
         return code, all_data.decode("UTF-8")

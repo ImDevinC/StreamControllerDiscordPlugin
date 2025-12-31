@@ -6,6 +6,7 @@ import requests
 from loguru import logger as log
 
 from .sockets import UnixPipe, SOCKET_BAD_BUFFER_SIZE, SOCKET_DISCONNECTED
+from socket import timeout
 from .commands import *
 from .exceptions import *
 from .constants import MAX_SOCKET_RETRY_ATTEMPTS
@@ -82,10 +83,11 @@ class AsyncDiscord:
         while self.polling:
             try:
                 val = self.rpc.receive()
+            except timeout:
+                continue
             except Exception as ex:
                 log.error(f"error receiving data from socket. {ex}")
                 self.disconnect()
-                return
             if val[0] == SOCKET_BAD_BUFFER_SIZE:
                 log.debug("bad buffer size when receiving data from socket")
             if val[0] == SOCKET_DISCONNECTED:
