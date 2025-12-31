@@ -11,7 +11,10 @@ from .exceptions import DiscordNotOpened
 from .constants import MAX_IPC_SOCKET_RANGE, SOCKET_SELECT_TIMEOUT, SOCKET_BUFFER_SIZE
 
 SOCKET_DISCONNECTED: int = -1
-
+SOCKET_BAD_BUFFER_SIZE: int = -2
+SOCKET_SEND_TIMEOUT: int = 5
+SOCKET_CONNECT_TIMEOUT: int = 2
+SOCKET_RECEIVE_TIMEOUT: int = 5
 
 class UnixPipe:
     def __init__(self):
@@ -19,8 +22,8 @@ class UnixPipe:
 
     def connect(self):
         if self.socket is None:
-            self.socket = socket.socket(socket.AF_UNIX)
-        self.socket.setblocking(False)
+            self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.socket.settimeout(SOCKET_CONNECT_TIMEOUT)
         base_path = path = (
             os.environ.get("XDG_RUNTIME_DIR")
             or os.environ.get("TMPDIR")
@@ -44,6 +47,7 @@ class UnixPipe:
                 pass
         else:
             raise DiscordNotOpened
+        self.socket.setblocking(False)
 
     def disconnect(self):
         if self.socket is None:
@@ -60,17 +64,15 @@ class UnixPipe:
         self.socket = None  # Reset so connect() creates a fresh socket
 
     def send(self, payload, op):
-        payload = json.dumps(payload).encode("UTF-8")
-        payload = struct.pack("<ii", op, len(payload)) + payload
-        size = 0
-        while size == 0 or size < len(payload):
-            res = self.socket.send(payload[size:])
-            size += res
+        log.debug(f"Sending payload: {payload} with op: {op}")
+        payload_bytes = json.dumps(payload).encode("UTF-8")
+        header = struct.pack("<ii", op, len(payload_bytes))
+        message = header + payload_bytes
+        self.socket.settimeout(SOCKET_SEND_TIMEOUT)
+        self.socket.sendall(message)
 
     def receive(self) -> (int, str):
-        ready = select.select([self.socket], [], [], SOCKET_SELECT_TIMEOUT)
-        if not ready[0]:
-            return 0, {}
+        self.socket.settimeout(SOCKET_RECEIVE_TIMEOUT)
         data = self.socket.recv(SOCKET_BUFFER_SIZE)
         if len(data) == 0:
             return SOCKET_DISCONNECTED, {}
@@ -80,7 +82,7 @@ class UnixPipe:
         all_data = data[8:]
         buffer_size = length - len(all_data)
         if buffer_size < 0:
-            return 0, {}
+            return SOCKET_BAD_BUFFER_SIZE, {}
         data = self.socket.recv(length - len(all_data))
         all_data += data
         return code, all_data.decode("UTF-8")

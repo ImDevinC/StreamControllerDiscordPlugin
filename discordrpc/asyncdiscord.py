@@ -5,7 +5,7 @@ import threading
 import requests
 from loguru import logger as log
 
-from .sockets import UnixPipe
+from .sockets import UnixPipe, SOCKET_BAD_BUFFER_SIZE, SOCKET_DISCONNECTED
 from .commands import *
 from .exceptions import *
 from .constants import MAX_SOCKET_RETRY_ATTEMPTS
@@ -39,15 +39,27 @@ class AsyncDiscord:
     def connect(self, callback: callable):
         tries = 0
         while tries < MAX_SOCKET_RETRY_ATTEMPTS:
-            log.debug(
-                f"Attempting to connect to socket, attempt {tries + 1}/{MAX_SOCKET_RETRY_ATTEMPTS}"
-            )
-            self.rpc.connect()
-            self.rpc.send({"v": 1, "client_id": self.client_id}, OP_HANDSHAKE)
-            _, resp = self.rpc.receive()
-            if resp:
+            try:
+                log.debug(
+                    f"Attempting to connect to socket, attempt {tries + 1}/{MAX_SOCKET_RETRY_ATTEMPTS}"
+                )
+                self.rpc.connect()
                 break
-            tries += 1
+            except Exception as ex:
+                log.error(f"failed to connect to socket. {ex}")
+                tries += 1
+
+        self.rpc.send({"v": "1", "client_id": self.client_id}, OP_HANDSHAKE)
+        code, resp = self.rpc.receive()
+
+        if not resp:
+            log.error("no response from discord client")
+            raise RPCException
+
+        if code == SOCKET_BAD_BUFFER_SIZE:
+            log.error("bad buffer size when receiving data from socket")
+            raise RPCException
+
         try:
             data = json.loads(resp)
         except Exception as ex:
@@ -74,7 +86,9 @@ class AsyncDiscord:
                 log.error(f"error receiving data from socket. {ex}")
                 self.disconnect()
                 return
-            if val[0] == -1:
+            if val[0] == SOCKET_BAD_BUFFER_SIZE:
+                log.debug("bad buffer size when receiving data from socket")
+            if val[0] == SOCKET_DISCONNECTED:
                 self.disconnect()
             callback(val[0], val[1])
 
