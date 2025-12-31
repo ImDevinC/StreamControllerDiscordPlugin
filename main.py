@@ -190,3 +190,12 @@ class PluginTemplate(PluginBase):
 
     def get_settings_area(self):
         return self._settings_manager.get_settings_area()
+
+    def clear_callbacks(self, key: str, callback: callable):
+        callbacks = self.callbacks.get(key, [])
+        if callback in callbacks:
+            callbacks.remove(callback)
+            if callbacks:
+                self.callbacks[key] = callbacks
+            else:
+                del self.callbacks[key]
