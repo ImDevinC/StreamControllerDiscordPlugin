@@ -47,11 +47,13 @@ class DiscordCore(ActionCore):
         """Register a callback and track it for cleanup."""
         self.backend.register_callback(key, callback)
         self._registered_callbacks.append((key, callback))
+        self.plugin_base.add_callback(key, callback)
 
     def cleanup_callbacks(self):
         """Unregister all tracked callbacks to prevent memory leaks."""
         for key, callback in self._registered_callbacks:
             self.backend.unregister_callback(key, callback)
+            self.plugin_base.remove_callback(key, callback)
         self._registered_callbacks.clear()
 
     def __del__(self):
