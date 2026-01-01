@@ -19,6 +19,7 @@ from .actions.Deafen import Deafen
 from .actions.ChangeVoiceChannel import ChangeVoiceChannel
 from .actions.ChangeTextChannel import ChangeTextChannel
 from .actions.TogglePTT import TogglePTT
+from .actions.UserVolume import UserVolume
 
 
 class PluginTemplate(PluginBase):
@@ -145,6 +146,19 @@ class PluginTemplate(PluginBase):
             },
         )
         self.add_action_holder(toggle_ptt)
+
+        user_volume = ActionHolder(
+            plugin_base=self,
+            action_base=UserVolume,
+            action_id="com_imdevinc_StreamControllerDiscordPlugin::UserVolume",
+            action_name="User Volume",
+            action_support={
+                Input.Key: ActionInputSupport.SUPPORTED,
+                Input.Dial: ActionInputSupport.SUPPORTED,
+                Input.Touchscreen: ActionInputSupport.UNTESTED,
+            },
+        )
+        self.add_action_holder(user_volume)
 
     def setup_backend(self):
         if self.backend and self.backend.is_authed():

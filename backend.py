@@ -19,6 +19,8 @@ class Backend(BackendBase):
         self._is_authed: bool = False
         self._current_voice_channel: str = None
         self._is_reconnecting: bool = False
+        self._voice_channel_users: dict = {}  # {user_id: {username, nick, volume, muted}}
+        self._current_user_id: str = None  # Current user's ID (for filtering)
 
     def discord_callback(self, code, event):
         if code == 0:
@@ -59,6 +61,10 @@ class Backend(BackendBase):
             case commands.AUTHENTICATE:
                 self.frontend.on_auth_callback(True)
                 self._is_authed = True
+                # Capture current user ID for filtering in UserVolume
+                data = event.get("data", {})
+                user = data.get("user", {})
+                self._current_user_id = user.get("id")
                 for k in self.callbacks:
                     self.discord_client.subscribe(k)
                 self._get_current_voice_channel()
@@ -71,6 +77,11 @@ class Backend(BackendBase):
                 )
                 self.frontend.handle_callback(
                     commands.VOICE_CHANNEL_SELECT, event.get("data")
+                )
+            case commands.GET_CHANNEL:
+                # Dispatch channel info (including voice_states) to frontend
+                self.frontend.handle_callback(
+                    commands.GET_CHANNEL, event.get("data")
                 )
 
     def _update_tokens(self, access_token: str = "", refresh_token: str = ""):
@@ -190,6 +201,10 @@ class Backend(BackendBase):
     def current_voice_channel(self):
         return self._current_voice_channel
 
+    @property
+    def current_user_id(self):
+        return self._current_user_id
+
     def _get_current_voice_channel(self):
         if not self._ensure_connected():
             log.warning(
@@ -197,6 +212,85 @@ class Backend(BackendBase):
             )
             return
         self.discord_client.get_selected_voice_channel()
+
+    def request_current_voice_channel(self):
+        """Public method to request current voice channel state (dispatches to callbacks)."""
+        self._get_current_voice_channel()
+
+    # User volume control methods
+
+    def set_user_volume(self, user_id: str, volume: int) -> bool:
+        """Set volume for a specific user (0-200, 100 = normal)."""
+        if not self._ensure_connected():
+            log.warning("Discord client not connected, cannot set user volume")
+            return False
+        self.discord_client.set_user_voice_settings(user_id, volume=volume)
+        if user_id in self._voice_channel_users:
+            self._voice_channel_users[user_id]["volume"] = volume
+        return True
+
+    def set_user_mute(self, user_id: str, muted: bool) -> bool:
+        """Mute/unmute a specific user locally."""
+        if not self._ensure_connected():
+            log.warning("Discord client not connected, cannot set user mute")
+            return False
+        self.discord_client.set_user_voice_settings(user_id, mute=muted)
+        if user_id in self._voice_channel_users:
+            self._voice_channel_users[user_id]["muted"] = muted
+        return True
+
+    def update_voice_channel_user(self, user_id: str, username: str, nick: str = None,
+                                   volume: int = 100, muted: bool = False):
+        """Track a user in the current voice channel."""
+        self._voice_channel_users[user_id] = {
+            "username": username,
+            "nick": nick,
+            "volume": volume,
+            "muted": muted
+        }
+
+    def remove_voice_channel_user(self, user_id: str):
+        """Remove a user from tracking when they leave."""
+        self._voice_channel_users.pop(user_id, None)
+
+    def clear_voice_channel_users(self):
+        """Clear all tracked users (when leaving voice channel)."""
+        self._voice_channel_users.clear()
+
+    def get_voice_channel_users(self) -> dict:
+        """Get a copy of the current voice channel users."""
+        return self._voice_channel_users.copy()
+
+    def get_channel(self, channel_id: str) -> bool:
+        """Fetch channel information including voice states."""
+        if not self._ensure_connected():
+            log.warning("Discord client not connected, cannot get channel")
+            return False
+        self.discord_client.get_channel(channel_id)
+        return True
+
+    def subscribe_voice_states(self, channel_id: str) -> bool:
+        """Subscribe to voice state events for a specific channel."""
+        if not self._ensure_connected():
+            log.warning("Discord client not connected, cannot subscribe to voice states")
+            return False
+        log.debug(f"Subscribing to voice state events for channel {channel_id}")
+        args = {"channel_id": channel_id}
+        self.discord_client.subscribe(commands.VOICE_STATE_CREATE, args)
+        self.discord_client.subscribe(commands.VOICE_STATE_DELETE, args)
+        self.discord_client.subscribe(commands.VOICE_STATE_UPDATE, args)
+        return True
+
+    def unsubscribe_voice_states(self, channel_id: str) -> bool:
+        """Unsubscribe from voice state events for a specific channel."""
+        if not self._ensure_connected():
+            return False
+        log.debug(f"Unsubscribing from voice state events for channel {channel_id}")
+        args = {"channel_id": channel_id}
+        self.discord_client.unsubscribe(commands.VOICE_STATE_CREATE, args)
+        self.discord_client.unsubscribe(commands.VOICE_STATE_DELETE, args)
+        self.discord_client.unsubscribe(commands.VOICE_STATE_UPDATE, args)
+        return True
 
     def close(self):
         if self.discord_client:
