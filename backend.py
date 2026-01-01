@@ -136,14 +136,14 @@ class Backend(BackendBase):
     def is_authed(self) -> bool:
         return self._is_authed
 
-    def register_callback(self, key: str, callback: callable, args: dict = None):
+    def register_callback(self, key: str, callback: callable):
         callbacks = self.callbacks.get(key, [])
         # Deduplicate callbacks to prevent multiple executions
         if callback not in callbacks:
             callbacks.append(callback)
             self.callbacks[key] = callbacks
         if self._is_authed:
-            self.discord_client.subscribe(key, args)
+            self.discord_client.subscribe(key)
 
     def unregister_callback(self, key: str, callback: callable):
         """Remove a callback from the callback list."""
