@@ -27,13 +27,17 @@ class ChangeVoiceChannel(DiscordCore):
 
     def on_ready(self):
         super().on_ready()
-        self.register_backend_callback(VOICE_CHANNEL_SELECT, self._update_display)
+        self.plugin_base.connect_to_event(
+                event_id=f"{self.plugin_base.get_plugin_id()}::{VOICE_CHANNEL_SELECT}",
+                callback=self._update_display,
+                )
 
-    def _update_display(self, value: dict):
+    def _update_display(self, *args, **kwargs):
         if not self.backend:
             self.show_error()
             return
         self.hide_error()
+        value = args[1]
         self._current_channel = value.get("channel_id", None) if value else None
         self.icon_name = (
             Icons.VOICE_CHANNEL_INACTIVE
