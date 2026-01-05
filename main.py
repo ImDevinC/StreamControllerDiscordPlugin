@@ -11,6 +11,7 @@ from src.backend.PluginManager.ActionHolder import ActionHolder
 from src.backend.DeckManagement.InputIdentifier import Input
 from src.backend.PluginManager.ActionInputSupport import ActionInputSupport
 from src.backend.DeckManagement.ImageHelpers import image2pixbuf
+from src.backend.PluginManager.EventHolder import EventHolder
 
 # Import actions
 from .settings import PluginSettings
@@ -20,6 +21,9 @@ from .actions.ChangeVoiceChannel import ChangeVoiceChannel
 from .actions.ChangeTextChannel import ChangeTextChannel
 from .actions.TogglePTT import TogglePTT
 from .actions.UserVolume import UserVolume
+
+# Import event IDs
+from .discordrpc.commands import VOICE_CHANNEL_SELECT, VOICE_SETTINGS_UPDATE, GET_CHANNEL
 
 
 class PluginTemplate(PluginBase):
@@ -40,6 +44,7 @@ class PluginTemplate(PluginBase):
         )
         self._add_icons()
         self._register_actions()
+        self._create_event_holders()
         backend_path = os.path.join(self.PATH, "backend.py")
         self.launch_backend(
             backend_path=backend_path,
@@ -69,6 +74,29 @@ class PluginTemplate(PluginBase):
 
         self.add_css_stylesheet(os.path.join(self.PATH, "style.css"))
         self.setup_backend()
+
+    def _create_event_holders(self):
+        voice_channel_select = EventHolder(
+            plugin_base=self,
+            event_id_suffix=VOICE_CHANNEL_SELECT,
+        )
+
+        voice_settings_update = EventHolder(
+            plugin_base=self,
+            event_id_suffix=VOICE_SETTINGS_UPDATE,
+        )
+
+        get_channel = EventHolder(
+            plugin_base=self,
+            event_id_suffix=GET_CHANNEL,
+        )
+
+        self.add_event_holders([
+            voice_channel_select,
+            voice_settings_update,
+            get_channel,
+        ])
+
 
     def _add_icons(self):
         self.add_icon("main", self.get_asset_path("Discord-Symbol-Blurple.png"))
@@ -213,3 +241,10 @@ class PluginTemplate(PluginBase):
                 self.callbacks[key] = callbacks
             else:
                 del self.callbacks[key]
+
+    def trigger_event(self, event_id_suffix: str, data: any):
+        event_id = f"{self.get_plugin_id()}::{event_id_suffix}"
+        if not event_id in self.event_holders:
+            log.warning(f"Event ID {event_id} not registered.")
+            return
+        self.event_holders[event_id].trigger_event(data)

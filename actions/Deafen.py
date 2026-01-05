@@ -27,7 +27,10 @@ class Deafen(DiscordCore):
 
     def on_ready(self):
         super().on_ready()
-        self.register_backend_callback(VOICE_SETTINGS_UPDATE, self._update_display)
+        self.plugin_base.connect_to_event(
+                event_id=f"{self.plugin_base.get_plugin_id()}::{VOICE_SETTINGS_UPDATE}",
+                callback=self._update_display,
+                )
 
     def create_event_assigners(self):
         self.event_manager.add_event_assigner(
@@ -46,13 +49,14 @@ class Deafen(DiscordCore):
             log.error(ex)
             self.show_error(3)
 
-    def _update_display(self, value: dict):
+    def _update_display(self, *args, **kwargs):
         if not self.backend:
             self.show_error()
             return
         else:
             self.hide_error()
-        self._deafened = value["deaf"]
+        data = args[1]
+        self._deafened = data.get("deaf", False)
         icon = Icons.DEAFEN if self._deafened else Icons.UNDEAFEN
         self.icon_name = Icons(icon)
         self.current_icon = self.get_icon(self.icon_name)

@@ -15,7 +15,6 @@ class Backend(BackendBase):
         self.access_token: str = None
         self.refresh_token: str = None
         self.discord_client: AsyncDiscord = None
-        self.callbacks: dict = {}
         self._is_authed: bool = False
         self._current_voice_channel: str = None
         self._is_reconnecting: bool = False
@@ -64,25 +63,19 @@ class Backend(BackendBase):
                 # Capture current user ID for filtering in UserVolume
                 data = event.get("data", {})
                 user = data.get("user", {})
+                self._register_callbacks()
                 self._current_user_id = user.get("id")
-                for k in self.callbacks:
-                    self.discord_client.subscribe(k)
                 self._get_current_voice_channel()
             case commands.DISPATCH:
                 evt = event.get("evt")
-                self.frontend.handle_callback(evt, event.get("data"))
+                self.frontend.trigger_event(evt, event.get("data"))
             case commands.GET_SELECTED_VOICE_CHANNEL:
                 self._current_voice_channel = (
                     event.get("data").get("channel_id") if event.get("data") else None
                 )
-                self.frontend.handle_callback(
-                    commands.VOICE_CHANNEL_SELECT, event.get("data")
-                )
+                self.frontend.trigger_event(commands.VOICE_CHANNEL_SELECT, event.get("data"))
             case commands.GET_CHANNEL:
-                # Dispatch channel info (including voice_states) to frontend
-                self.frontend.handle_callback(
-                    commands.GET_CHANNEL, event.get("data")
-                )
+                self.frontend.trigger_event(commands.GET_CHANNEL, event.get("data"))
 
     def _update_tokens(self, access_token: str = "", refresh_token: str = ""):
         self.access_token = access_token
@@ -96,15 +89,11 @@ class Backend(BackendBase):
             return
         try:
             self._is_reconnecting = True
-            log.debug("new client")
             self.discord_client = AsyncDiscord(self.client_id, self.client_secret)
-            log.debug("connect")
             self.discord_client.connect(self.discord_callback)
             if not self.access_token:
-                log.debug("authorize")
                 self.discord_client.authorize()
             else:
-                log.debug("authenticate")
                 self.discord_client.authenticate(self.access_token)
         except Exception as ex:
             self.frontend.on_auth_callback(False, str(ex))
@@ -136,25 +125,10 @@ class Backend(BackendBase):
     def is_authed(self) -> bool:
         return self._is_authed
 
-    def register_callback(self, key: str, callback: callable):
-        callbacks = self.callbacks.get(key, [])
-        # Deduplicate callbacks to prevent multiple executions
-        if callback not in callbacks:
-            callbacks.append(callback)
-            self.callbacks[key] = callbacks
-        if self._is_authed:
-            self.discord_client.subscribe(key)
-
-    def unregister_callback(self, key: str, callback: callable):
-        """Remove a callback from the callback list."""
-        callbacks = self.callbacks.get(key, [])
-        if callback in callbacks:
-            callbacks.remove(callback)
-            if callbacks:
-                self.callbacks[key] = callbacks
-            else:
-                # Remove key entirely if no callbacks remain
-                del self.callbacks[key]
+    def _register_callbacks(self):
+        self.discord_client.subscribe(commands.VOICE_SETTINGS_UPDATE)
+        self.discord_client.subscribe(commands.VOICE_CHANNEL_SELECT)
+        self.discord_client.subscribe(commands.GET_CHANNEL)
 
     def _ensure_connected(self) -> bool:
         """Ensure client is connected, trigger reconnection if needed."""
@@ -274,7 +248,6 @@ class Backend(BackendBase):
         if not self._ensure_connected():
             log.warning("Discord client not connected, cannot subscribe to voice states")
             return False
-        log.debug(f"Subscribing to voice state events for channel {channel_id}")
         args = {"channel_id": channel_id}
         self.discord_client.subscribe(commands.VOICE_STATE_CREATE, args)
         self.discord_client.subscribe(commands.VOICE_STATE_DELETE, args)
@@ -285,7 +258,6 @@ class Backend(BackendBase):
         """Unsubscribe from voice state events for a specific channel."""
         if not self._ensure_connected():
             return False
-        log.debug(f"Unsubscribing from voice state events for channel {channel_id}")
         args = {"channel_id": channel_id}
         self.discord_client.unsubscribe(commands.VOICE_STATE_CREATE, args)
         self.discord_client.unsubscribe(commands.VOICE_STATE_DELETE, args)

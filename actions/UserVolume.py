@@ -43,11 +43,14 @@ class UserVolume(DiscordCore):
     def on_ready(self):
         super().on_ready()
 
-        # Subscribe to voice channel changes (doesn't need channel_id)
-        self.register_backend_callback(VOICE_CHANNEL_SELECT, self._on_voice_channel_select)
-
-        # Subscribe to GET_CHANNEL responses
-        self.register_backend_callback(GET_CHANNEL, self._on_get_channel)
+        self.plugin_base.connect_to_event(
+                event_id=f"{self.plugin_base.get_plugin_id()}::{VOICE_CHANNEL_SELECT}",
+                callback=self._on_voice_channel_select,
+                )
+        self.plugin_base.connect_to_event(
+                event_id=f"{self.plugin_base.get_plugin_id()}::{GET_CHANNEL}",
+                callback=self._on_get_channel,
+                )
 
         # Initialize display
         self._update_display()
@@ -130,8 +133,9 @@ class UserVolume(DiscordCore):
 
     # === Discord Event Callbacks ===
 
-    def _on_voice_channel_select(self, data: dict):
+    def _on_voice_channel_select(self, *args, **kwargs):
         """Handle user joining/leaving voice channel."""
+        data = args[1]
         try:
             if data is None or data.get("channel_id") is None:
                 # Left voice channel - unsubscribe from previous channel
@@ -172,8 +176,9 @@ class UserVolume(DiscordCore):
         except Exception as ex:
             log.error(f"UserVolume[{id(self)}]: Error in _on_voice_channel_select: {ex}")
 
-    def _on_get_channel(self, data: dict):
+    def _on_get_channel(self, *args, **kwargs):
         """Handle GET_CHANNEL response with initial user list."""
+        data = args[1]
         if not data:
             return
 
