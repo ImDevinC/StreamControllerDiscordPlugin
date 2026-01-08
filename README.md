@@ -12,13 +12,14 @@
 1. Make sure to set a `redirect url` of `http://localhost:9000` in the Oauth2 settings page
 1. Use the Client ID and Client Secret on any of the actions (applying to one action will apply to all)
 
-## Currently supported features
-Currently, this plugin supports the following:
+## Available Actions
 
-- Mute/Unmute
-- Deafen/Undeafen
-- Join/Leave voice channel
-- Join text channel
+- **Mute** - Toggle, enable, or disable microphone mute with visual feedback
+- **Deafen** - Toggle deafen state to prevent hearing others in voice channels
+- **TogglePTT** - Switch between Push-to-Talk and Voice Activity input modes
+- **ChangeTextChannel** - Navigate to a specific text channel by ID
+- **ChangeVoiceChannel** - Join or leave a specific voice channel by ID
+- **UserVolume** - Control per-user volume levels via dial (rotate to adjust volume, press to cycle users)
 
 ## Flatpak
 If you are using the Flatpak version of Discord, Discord may not properly setup
