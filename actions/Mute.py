@@ -89,6 +89,9 @@ class Mute(DiscordCore):
             self.hide_error()
         data = args[1]
         self._muted = data.get("mute", False)
+        deaf = data.get("deaf", False)
+        if deaf:
+            self._muted = True
         icon = Icons.MUTE if self._muted else Icons.UNMUTE
         self.icon_name = Icons(icon)
         self.current_icon = self.get_icon(self.icon_name)
