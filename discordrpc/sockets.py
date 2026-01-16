@@ -21,8 +21,10 @@ class UnixPipe:
         self.socket: socket.socket = None
 
     def connect(self):
-        if self.socket is None:
-            self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        if self.socket is not None:
+            log.debug("Socket already connected, disconnecting first.")
+            self.disconnect()
+        self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.socket.settimeout(SOCKET_CONNECT_TIMEOUT)
         base_path = path = (
             os.environ.get("XDG_RUNTIME_DIR")
@@ -35,9 +37,11 @@ class UnixPipe:
         for i in range(MAX_IPC_SOCKET_RANGE):
             path = base_path.format(i)
             try:
+                log.debug(f"Attempting to connect to socket at path: {path}")
                 self.socket.connect(path)
                 break
             except FileNotFoundError:
+                log.warning(f"socket {path} not found, trying next socket.")
                 pass
             except Exception as ex:
                 log.error(
@@ -47,6 +51,7 @@ class UnixPipe:
                 pass
         else:
             raise DiscordNotOpened
+        log.debug(f"Connected to socket at path: {path}")
         self.socket.setblocking(False)
 
     def disconnect(self):

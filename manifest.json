@@ -1,8 +1,8 @@
 {
-  "version": "1.11.0",
+  "version": "1.11.1",
   "thumbnail": "store/thumbnail.png",
   "id": "com_imdevinc_StreamControllerDiscordPlugin",
-  "name": "Discord - Debug",
+  "name": "Discord",
   "author": "ImDevinC",
   "github": "https://github.com/ImDevinC/StreamControllerDiscordPlugin",
   "tags": [
