@@ -46,11 +46,16 @@ class PluginTemplate(PluginBase):
         self._register_actions()
         self._create_event_holders()
         backend_path = os.path.join(self.PATH, "backend.py")
-        self.launch_backend(
-            backend_path=backend_path,
-            open_in_terminal=False,
-            venv_path=os.path.join(self.PATH, ".venv"),
-        )
+        try:
+            self.launch_backend(
+                backend_path=backend_path,
+                open_in_terminal=False,
+                venv_path=os.path.join(self.PATH, ".venv"),
+            )
+            self.wait_for_backend(tries=10)
+        except Exception as ex:
+            log.error(f"Failed to launch backend: {ex}")
+
 
         try:
             with open(
