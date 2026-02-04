@@ -33,6 +33,7 @@ systemctl --user enable --now systemd-tmpfiles-setup.service
 ```
 You will also need to make sure that Discord has access to `/run/user/1000/` to be able to create the IPC file.
 Configurable by allowing access to `xdg-run/discord:create`.
+![Flatseal-Discord](/content/flatseal-discord.png)
 
 If you are using the Flatpak version of StreamController, you will need to make sure StreamController has
 access to `/run/user/1000/discord-ipc-0` so it can access the IPC files. You can achieve this by adding `xdg-run/discord-ipc-0` to Flatseal.
