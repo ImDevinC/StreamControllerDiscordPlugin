@@ -73,7 +73,9 @@ class Backend(BackendBase):
                 self._current_voice_channel = (
                     event.get("data").get("channel_id") if event.get("data") else None
                 )
-                self.frontend.trigger_event(commands.VOICE_CHANNEL_SELECT, event.get("data"))
+                self.frontend.trigger_event(
+                    commands.VOICE_CHANNEL_SELECT, event.get("data")
+                )
             case commands.GET_CHANNEL:
                 self.frontend.trigger_event(commands.GET_CHANNEL, event.get("data"))
 
@@ -89,6 +91,17 @@ class Backend(BackendBase):
             return
         try:
             self._is_reconnecting = True
+            # Clean up existing client before creating new one to prevent orphaned connections
+            # This fixes duplicate socat processes on Flatpak (issue #74)
+            if self.discord_client:
+                log.debug("Disconnecting existing Discord client before reconnection")
+                try:
+                    self.discord_client.disconnect()
+                except Exception as ex:
+                    log.debug(
+                        f"Error disconnecting old client during reconnection: {ex}"
+                    )
+                self.discord_client = None
             self.discord_client = AsyncDiscord(self.client_id, self.client_secret)
             self.discord_client.connect(self.discord_callback)
             if not self.access_token:
@@ -213,14 +226,20 @@ class Backend(BackendBase):
             self._voice_channel_users[user_id]["muted"] = muted
         return True
 
-    def update_voice_channel_user(self, user_id: str, username: str, nick: str = None,
-                                   volume: int = 100, muted: bool = False):
+    def update_voice_channel_user(
+        self,
+        user_id: str,
+        username: str,
+        nick: str = None,
+        volume: int = 100,
+        muted: bool = False,
+    ):
         """Track a user in the current voice channel."""
         self._voice_channel_users[user_id] = {
             "username": username,
             "nick": nick,
             "volume": volume,
-            "muted": muted
+            "muted": muted,
         }
 
     def remove_voice_channel_user(self, user_id: str):
@@ -246,7 +265,9 @@ class Backend(BackendBase):
     def subscribe_voice_states(self, channel_id: str) -> bool:
         """Subscribe to voice state events for a specific channel."""
         if not self._ensure_connected():
-            log.warning("Discord client not connected, cannot subscribe to voice states")
+            log.warning(
+                "Discord client not connected, cannot subscribe to voice states"
+            )
             return False
         args = {"channel_id": channel_id}
         self.discord_client.subscribe(commands.VOICE_STATE_CREATE, args)

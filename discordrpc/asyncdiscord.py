@@ -88,11 +88,17 @@ class AsyncDiscord:
             except Exception as ex:
                 log.error(f"error receiving data from socket. {ex}")
                 self.disconnect()
+                log.debug("Poll loop terminated due to socket error")
+                break
             if val[0] == SOCKET_BAD_BUFFER_SIZE:
                 log.debug("bad buffer size when receiving data from socket")
+                continue
             if val[0] == SOCKET_DISCONNECTED:
+                log.debug("Socket disconnected, terminating poll loop")
                 self.disconnect()
+                break
             callback(val[0], val[1])
+        log.debug("Poll callback loop exited")
 
     def authorize(self):
         payload = {"client_id": self.client_id, "scopes": ["rpc", "identify"]}
@@ -172,7 +178,9 @@ class AsyncDiscord:
     def get_selected_voice_channel(self) -> str:
         self._send_rpc_command(GET_SELECTED_VOICE_CHANNEL)
 
-    def set_user_voice_settings(self, user_id: str, volume: int = None, mute: bool = None):
+    def set_user_voice_settings(
+        self, user_id: str, volume: int = None, mute: bool = None
+    ):
         """Set voice settings for a specific user in the current voice channel.
 
         Args:
