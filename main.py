@@ -242,6 +242,10 @@ class PluginTemplate(PluginBase):
             else:
                 del self.callbacks[key]
 
+    def remove_callback(self, key: str, callback: callable):
+        """Remove a specific callback. Delegates to clear_callbacks."""
+        self.clear_callbacks(key, callback)
+
     def trigger_event(self, event_id_suffix: str, data: any):
         event_id = f"{self.get_plugin_id()}::{event_id_suffix}"
         if not event_id in self.event_holders:
