@@ -26,6 +26,7 @@ class AsyncDiscord:
         self.client_secret = client_secret
         self.access_token = access_token
         self.polling = False
+        self._polling_thread = None
         self._session = requests.Session()  # Reuse HTTP connections
 
     def _send_rpc_command(self, command: str, args: dict = None):
@@ -35,7 +36,7 @@ class AsyncDiscord:
         self.rpc.send(payload, OP_FRAME)
 
     def is_connected(self):
-        return self.polling
+        return self.polling and self.rpc.socket is not None
 
     def connect(self, callback: callable):
         tries = 0
@@ -71,10 +72,13 @@ class AsyncDiscord:
         if data.get("cmd") != "DISPATCH" or data.get("evt") != "READY":
             raise RPCException
         self.polling = True
-        threading.Thread(target=self.poll_callback, args=[callback]).start()
+        self._polling_thread = threading.Thread(target=self.poll_callback, args=[callback])
+        self._polling_thread.start()
 
     def disconnect(self):
         self.polling = False
+        if self._polling_thread and self._polling_thread.is_alive():
+            self._polling_thread.join(timeout=3)
         self.rpc.disconnect()
         if self._session:
             self._session.close()
@@ -88,10 +92,16 @@ class AsyncDiscord:
             except Exception as ex:
                 log.error(f"error receiving data from socket. {ex}")
                 self.disconnect()
+                continue
+
             if val[0] == SOCKET_BAD_BUFFER_SIZE:
                 log.debug("bad buffer size when receiving data from socket")
+                continue
+
             if val[0] == SOCKET_DISCONNECTED:
                 self.disconnect()
+                break
+
             callback(val[0], val[1])
 
     def authorize(self):
